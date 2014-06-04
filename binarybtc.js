@@ -26,7 +26,7 @@ var port = 8080
 
 // IRC Listener
   var messages = new Array();
-  fs.readFile('/home/node/keys/irc.host', 'utf8', function (err,data) {
+  fs.readFile('./irc.host', 'utf8', function (err,data) {
   if (err) throw (err)
   var host = data.replace("\n", "").replace("\r", "");
   var name = 'root';
@@ -80,8 +80,8 @@ var clock = setInterval(function() {
 var smtpTransport = nodemailer.createTransport("SMTP",{
     service: "Gmail",
     auth: {
-        user: fs.readFileSync('/home/node/keys/mail.id'),
-        pass: fs.readFileSync('/home/node/keys/mail.key')
+        user: fs.readFileSync('./mail.id'),
+        pass: fs.readFileSync('./mail.key')
     }
 });
 
@@ -113,7 +113,7 @@ smtpTransport.sendMail(mailOptions, function(err, response){
 }
 
 // Database connect
-fs.readFile('/home/node/keys/mongo.key', 'utf8', function (err,data) {
+fs.readFile('./mongo.key', 'utf8', function (err,data) {
   if (err) throw (err)
   var key = data.replace("\n", "").replace("\r", "");
   mongoose.connect(key);
@@ -159,7 +159,7 @@ Pageviews.remove({}, function(err) {
 
 
 // Key value connect and money handling
-  fs.readFile('/home/node/keys/redis.key', 'utf8', function (err,data) {
+  fs.readFile('./redis.key', 'utf8', function (err,data) {
     if (err) throw (err);
     var key = data.replace("\n", "").replace("\r", "");
     var options = {
@@ -204,7 +204,7 @@ function pay(amount, tradeuser) {
 }
 
 // 2 Factor
-fs.readFile('/home/node/keys/authy.key', 'utf8', function (err,data) {
+fs.readFile('./authy.key', 'utf8', function (err,data) {
   if (err) throw (err)
   var key = data.replace("\n", "").replace("\r", "");
   authy.api.mode = 'production'
@@ -222,16 +222,12 @@ ca = (function() {
   _results = [];
   for (_i = 0, _len = files.length; _i < _len; _i++) {
     file = files[_i];
-    _results.push(fs.readFileSync("/home/node/keys/" + file));
+    _results.push(fs.readFileSync("./" + file));
   }
   return _results;
 })();
 
-var options = {
-  ca: ca,
-  key: fs.readFileSync('/home/node/keys/server.key'),
-  cert: fs.readFileSync('/home/node/keys/vbit_io.crt')
-}
+
 // Start secure webserver
 //var keys = new Keygrip(["SEKRIT2", "SEKRIT1"]);
 var app = module.exports = express();
@@ -247,12 +243,12 @@ app.engine('.html', require('ejs').__express);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'html');
 // Create the server object
-var server = https.createServer(options, app).listen(port, function(){
+var server = http.createServer(app).listen(port, function(){
   console.log("Express server listening on port " + port);
 });
 
 // Start secure socket server
-var io = require('socket.io').listen(3000, options);
+var io = require('socket.io').listen(2000);
 io.set('log level', 1); // reduce logging
 
 // User Middleware
@@ -1042,7 +1038,7 @@ io.sockets.on('connection', function (socket) {
   io.sockets.emit('offer', offer);
 
   // Protochat
-  fs.readFile('/home/node/keys/irc.host', 'utf8', function (err,data) {
+  fs.readFile('./irc.host', 'utf8', function (err,data) {
   if (err) throw (err)
   var host = data.replace("\n", "").replace("\r", "");
   var name = myName;
@@ -2055,7 +2051,7 @@ function getPrice(symbol, force, callback) {
     var decoder = new StringDecoder('utf8');
     resp.on('data', function(chunk){
       chunk = decoder.write(chunk);
-      //console.log(chunk)
+      console.log(chunk)
       var data = chunk.split(',');
       var datas = data[7].split(':');
       data = datas[1];
@@ -2134,17 +2130,17 @@ var  bitcoin = require('bitcoin')
 var client = null;
 var gclient = null;
 function Bitcoinconnect(next) {
-  fs.readFile('/home/node/keys/bitcoin.id', 'utf8', function (err,data) {
+  fs.readFile('test', 'utf8', function (err,data) {
     if (err) throw (err);
     var id = data.replace("\n", "").replace("\r", "");
-      fs.readFile('/home/node/keys/bitcoin.key', 'utf8', function (err,data) {
+      fs.readFile('test1', 'utf8', function (err,data) {
         if (err) throw (err);
       var key = data.replace("\n", "").replace("\r", "");
-        fs.readFile('/home/node/keys/bitcoin.host', 'utf8', function (err,data) {
+        fs.readFile('127.0.0.1', 'utf8', function (err,data) {
           if (err) throw (err);
 
           var host = data.replace("\n", "").replace("\r", "");
-          fs.readFile('/home/node/keys/bitcoin.port', 'utf8', function (err,data) {
+          fs.readFile('83332', 'utf8', function (err,data) {
             if (err) throw (err);
             var port = data.replace("\n", "").replace("\r", "");
           var client = new bitcoin.Client({

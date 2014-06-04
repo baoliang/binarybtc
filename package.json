@@ -12,6 +12,7 @@
     "mongoose": "~3.8.8",
     "now": "~0.8.1",
     "passport": "~0.2.0",
+    "irc": "~0.3.7",
     "passport-local": "~0.1.6",
     "redis": "~0.10.1",
     "socket.io": "~0.9.16"
