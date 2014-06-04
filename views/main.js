@@ -18,7 +18,7 @@ require(['modules/referrals']);
     // each something          index, current
   // });
 
-    var socket = io.connect('http://vbit.io:2000', {secure: true});
+    var socket = io.connect('http://vbit.io:2000', {secure: false});
     var user, email, dualfactor, verified, userid, option, price, expires, direction, userdeposit, ratio, percentage, xp, level;
     var $users = $('#users ul');
     var $chatOutput = $('.messages');

@@ -216,16 +216,6 @@ fs.readFile('./authy.key', 'utf8', function (err,data) {
 
 // Include SSL server.key and domain.crt from a safe place
 var ca, file, files, fs, https, httpsOptions, httpsServer, requestHandler;
-files = ["EssentialSSLCA_2.crt", "ComodoUTNSGCCA.crt", "UTNAddTrustSGCCA.crt", "AddTrustExternalCARoot.crt"];
-ca = (function() {
-  var _i, _len, _results;
-  _results = [];
-  for (_i = 0, _len = files.length; _i < _len; _i++) {
-    file = files[_i];
-    _results.push(fs.readFileSync("./" + file));
-  }
-  return _results;
-})();
 
 
 // Start secure webserver

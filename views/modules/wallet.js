@@ -135,7 +135,7 @@ $(document).ready(function()
     
 
 var clientText = new ZeroClipboard( $(".btcaddress"), {
-    moviePath: "https://vbit.io/assets/img/ZeroClipboard.swf",
+    moviePath: "http://vbit.io/assets/img/ZeroClipboard.swf",
     debug: false
 } );
 $(".hook").on("click",".btcaddress",function(e) {    
