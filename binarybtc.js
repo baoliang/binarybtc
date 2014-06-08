@@ -2041,7 +2041,7 @@ function getPrice(symbol, force, callback) {
     var decoder = new StringDecoder('utf8');
     resp.on('data', function(chunk){
       chunk = decoder.write(chunk);
-      console.log(chunk)
+      // console.log(chunk)
       var data = chunk.split(',');
       var datas = data[7].split(':');
       data = datas[1];
@@ -2120,32 +2120,15 @@ var  bitcoin = require('bitcoin')
 var client = null;
 var gclient = null;
 function Bitcoinconnect(next) {
-  fs.readFile('test', 'utf8', function (err,data) {
-    if (err) throw (err);
-    var id = data.replace("\n", "").replace("\r", "");
-      fs.readFile('test1', 'utf8', function (err,data) {
-        if (err) throw (err);
-      var key = data.replace("\n", "").replace("\r", "");
-        fs.readFile('127.0.0.1', 'utf8', function (err,data) {
-          if (err) throw (err);
-
-          var host = data.replace("\n", "").replace("\r", "");
-          fs.readFile('83332', 'utf8', function (err,data) {
-            if (err) throw (err);
-            var port = data.replace("\n", "").replace("\r", "");
-          var client = new bitcoin.Client({
-            host: host,
-            port: port,
-            user: id,
-            pass: key,
+            var client = new bitcoin.Client({
+            host: "127.0.0.1",
+            port: "83332",
+            user: "test",
+            pass: "test1",
             timeout: 5000
           });
           //console.log(host+':'+port);
           next(client);
-        });
-        });
-    });
-  });
 }
 
 Bitcoinconnect(function(client) {
