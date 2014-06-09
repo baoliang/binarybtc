@@ -1632,8 +1632,8 @@ app.get('/logout', function(req, res) {
 });
 app.get('/login/:username/:password', function(req, res) {
       // Get username and password variables
-      var password = decodeURI(req.param('password', null));
-      var username = decodeURI(req.param('username', null));
+      var password = req.param('password', null);
+      var username = req.param('username', null);
       //console.log('login request recieved: ' + username + ':' + password);
           // Check if this username is in the userfilewall
           Userfirewall.count({username: username}, function(err, c){
@@ -1690,7 +1690,8 @@ app.get('/login/:username/:password', function(req, res) {
               res.send("Too many requests.");
             }
           });
-});app.get('/login', function(req, res){
+});
+app.get('/login', function(req, res){
   res.send('Let me explain: /login/{username}/{password}');
 });
 

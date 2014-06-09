@@ -115,7 +115,7 @@ $(".hook").on("click",".keystonelink",function(e) {
         var email = $("#email").val();
     var password = $("#password").val();
     if (email && password) {
-    var url = encodeURIComponent("/login/" + email + "/" + password);
+    var url = "/login/" + email + "/" + password;
     $.ajax({
       url: url,
       cache: false
