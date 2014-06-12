@@ -248,7 +248,7 @@ var User = require('user-model');
 
 // Tradeserver Variables
               //Bitcoin and Crypto
-var symbols = ['BTCUSD', 'LTCUSD', 'EURUSD', 'GBPUSD', 'CADUSD', 'AAPL', 'GOOG', 'CLM14.NYM', 'GCM14.CMX', '^SLVSY'];
+var symbols = ['BTCUSD', 'LTCUSD', 'EURUSD', 'GBPUSD', 'CADUSD', 'AAPL', 'GOOG', 'CLM14.NYM',  '^SLVSY'];
 
 var bank;
 var put = 0;
@@ -728,7 +728,7 @@ function checktx(doc){
 
 
 var tradeupdater = setInterval(function() {
-var symbols = ['BTCUSD', 'LTCUSD', 'EURUSD', 'GBPUSD', 'CADUSD', 'AAPL', 'GOOG', 'CLM14.NYM', 'GCM14.CMX', '^SLVSY'];
+var symbols = ['BTCUSD', 'LTCUSD', 'EURUSD', 'GBPUSD', 'CADUSD', 'AAPL', 'GOOG', 'CLM14.NYM',  '^SLVSY'];
 
   async.each(symbols,function (symbol, callback) {
       getPrice(symbol, 1);

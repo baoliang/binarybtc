@@ -33,20 +33,20 @@ require(['modules/referrals']);
     var chartinit = new Array();
     var tradeevery = 5;
     var minsx;
-         socket.on('nexttrade', function (data) {
-          data[1] = ('0' + data[1]).slice(-2);
-          nexttrade = data;
-            if (data[0] || data[1]) {
-              var minssecs = data[0]*60;
-              minsx = (+data[1]+minssecs);
-              $('.expiretime').html(data[0] + ':' + data[1]);
-              var percentage = (+minsx/(tradeevery*60));
-              percentage = percentage*100;
-              //console.log(percentage);
-              if (minsx < 15) $('.tradeprogress').removeClass('progress-bar-warning').addClass('progress-bar-danger').css('width', percentage+'%').html('').attr('aria-valuenow', percentage);
-              if (minsx > 16) $('.tradeprogress').removeClass('progress-bar-danger').addClass('progress-bar-warning').css('width', percentage+'%').html(data[0]+':'+data[1]).attr('aria-valuenow', percentage);
-            }
-          });
+    socket.on('nexttrade', function (data) {
+        data[1] = ('0' + data[1]).slice(-2);
+        nexttrade = data;
+        if (data[0] || data[1]) {
+          var minssecs = data[0]*60;
+          minsx = (+data[1]+minssecs);
+          $('.expiretime').html(data[0] + ':' + data[1]);
+          var percentage = (+minsx/(tradeevery*60));
+          percentage = percentage*100;
+          //console.log(percentage);
+          if (minsx < 15) $('.tradeprogress').removeClass('progress-bar-warning').addClass('progress-bar-danger').css('width', percentage+'%').html('').attr('aria-valuenow', percentage);
+          if (minsx > 16) $('.tradeprogress').removeClass('progress-bar-danger').addClass('progress-bar-warning').css('width', percentage+'%').html(data[0]+':'+data[1]).attr('aria-valuenow', percentage);
+        }
+    });
 function showloginfield(username, bal) {
 if (username) {
   var login = '<div class="btn-group accountinfo" style="padding: 0px;">';
@@ -226,7 +226,7 @@ function loadHistory() {
               //Bitcoin             Euro      Pound    China      Dow     Oil           Gold        Silver      S&P 500   Nasdaq
 //var symbols = ['BTCUSD', 'BTCCNY', 'EURUSD', 'GBPUSD', 'USDCNY', '^DJI', 'CLK14.NYM', 'GCJ14.CMX', 'SIJ14.CMX', '^GSPC', '^IXIC'];
 
-var symbols = ['BTCUSD', 'LTCUSD', 'EURUSD', 'GBPUSD', 'CADUSD', 'AAPL', 'GOOG', 'CLM14.NYM', 'GCM14.CMX', '^SLVSY'];
+var symbols = ['BTCUSD', 'LTCUSD', 'EURUSD', 'GBPUSD', 'CADUSD', 'AAPL', 'GOOG', 'CLM14.NYM', '^SLVSY'];
 
 // var symbols;
 
