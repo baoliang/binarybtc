@@ -15,7 +15,7 @@ var port = 8080
   , async = require('async')
   , LocalStrategy = require('passport-local').Strategy
   , StringDecoder = require('string_decoder').StringDecoder
-  , mailer = require('mailer')
+  , mailer = require('./lib/mailer.js')
   , irc = require('irc')
   , authy = require('authy-node')    
   , bcrypt = require('bcrypt')
@@ -242,7 +242,7 @@ var io = require('socket.io').listen(2000);
 io.set('log level', 1); // reduce logging
 
 // User Middleware
-var User = require('user-model');
+var User = require('./lib/user-model.js');
 
 
 
@@ -1663,7 +1663,7 @@ app.get('/login/:username/:password', function(req, res) {
                             createdAt: date
                           });
                           userKey.save(function(err) {
-                             if (err) { throw (err) }
+                             if (err) { throw (err);console.log(err) }
                             });
                            res.send("OK");
                         } else if (isMatch == false) {
@@ -2117,7 +2117,7 @@ function getPrice(symbol, force, callback) {
 var  bitcoin = require('bitcoin')
   ,fs = require('fs')
   ,mongoose = require('mongoose')
-  ,User = require('user-model');
+  ,User = require('./lib/user-model.js');
 var client = null;
 var gclient = null;
 function Bitcoinconnect(next) {
