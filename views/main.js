@@ -14,6 +14,7 @@ require(['modules/chat']);
 require(['modules/xp']);
 require(['modules/referrals']);
 
+<<<<<<< HEAD
 var socket = io.connect('http://vbit.io:2000', {secure: false});
 var user, email, dualfactor, verified, userid, option, price, expires, direction, userdeposit, ratio, percentage, xp, level;
 var $users = $('#users ul');
@@ -32,6 +33,30 @@ var minsx;
      socket.on('nexttrade', function (data) {
       data[1] = ('0' + data[1]).slice(-2);
       nexttrade = data;
+=======
+  // $.each(symbols, function( index, symbol ) {
+    // each something          index, current
+  // });
+
+    var socket = io.connect('http://vbit.io:2000', {secure: false});
+    var user, email, dualfactor, verified, userid, option, price, expires, direction, userdeposit, ratio, percentage, xp, level;
+    var $users = $('#users ul');
+    var $chatOutput = $('.messages');
+    var $chatInput = $('#chat input');
+    var $messagesOutput = $('.messages');
+    var $messagesInput = $('#chat input');
+    var target = 0;
+    var autocolor = 1;
+    var tradingopen = true;
+    var publictrades = true;
+    var nexttrade = {};
+    var chartinit = new Array();
+    var tradeevery = 5;
+    var minsx;
+    socket.on('nexttrade', function (data) {
+        data[1] = ('0' + data[1]).slice(-2);
+        nexttrade = data;
+>>>>>>> 60c8d5b1c9b39259230be5848e8044172302a065
         if (data[0] || data[1]) {
           var minssecs = data[0]*60;
           minsx = (+data[1]+minssecs);
@@ -42,7 +67,11 @@ var minsx;
           if (minsx < 15) $('.tradeprogress').removeClass('progress-bar-warning').addClass('progress-bar-danger').css('width', percentage+'%').html('').attr('aria-valuenow', percentage);
           if (minsx > 16) $('.tradeprogress').removeClass('progress-bar-danger').addClass('progress-bar-warning').css('width', percentage+'%').html(data[0]+':'+data[1]).attr('aria-valuenow', percentage);
         }
+<<<<<<< HEAD
       });
+=======
+    });
+>>>>>>> 60c8d5b1c9b39259230be5848e8044172302a065
 function showloginfield(username, bal) {
 if (username) {
   var login = '<div class="btn-group accountinfo" style="padding: 0px;">';
@@ -222,7 +251,7 @@ function loadHistory() {
               //Bitcoin             Euro      Pound    China      Dow     Oil           Gold        Silver      S&P 500   Nasdaq
 //var symbols = ['BTCUSD', 'BTCCNY', 'EURUSD', 'GBPUSD', 'USDCNY', '^DJI', 'CLK14.NYM', 'GCJ14.CMX', 'SIJ14.CMX', '^GSPC', '^IXIC'];
 
-var symbols = ['BTCUSD', 'LTCUSD', 'EURUSD', 'GBPUSD', 'CADUSD', 'AAPL', 'GOOG', 'CLM14.NYM', 'GCM14.CMX', '^SLVSY'];
+var symbols = ['BTCUSD', 'LTCUSD', 'EURUSD', 'GBPUSD', 'CADUSD', 'AAPL', 'GOOG', 'CLM14.NYM', '^SLVSY'];
 
 // var symbols;
 
