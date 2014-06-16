@@ -13,7 +13,7 @@ function bottlepop(tx, amount) {
 
 // Trading
 $(function() {
-  var defaultsymbol = ['GCM14.CMX'];
+  var defaultsymbol = ['BTCUSD'];
   page('trade', defaultsymbol);
 
 
@@ -125,6 +125,7 @@ $(".hook").on("click",".keystonelink",function(e) {
       } else if (html == "Invalid username or password."){
         $('.loginbtn').removeClass('btn-success').addClass('btn-warning').html('Try again');
       } else if (html == "OK") {
+        user = true;
         $('.loginbtn').removeClass('btn-warning').addClass('btn-success').html('Logged in');
         setTimeout(function(){location.reload()},1000);
       }

@@ -240,7 +240,8 @@ var symbols = ['BTCUSD', 'LTCUSD', 'EURUSD', 'GBPUSD', 'CADUSD', 'AAPL', 'GOOG',
 
 
     socket.on('loadpage', function (data) {
-      console.log('loadpage ' + data.page);
+      console.log('loadpage ');
+      console.log(data);
       switch (data.page) {
         case 'trade':
           loadTrades(data.symbol,data.guest);
