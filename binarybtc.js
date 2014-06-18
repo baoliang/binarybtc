@@ -781,7 +781,6 @@ var myName, myNumber;
 // User Connects
 io.sockets.on('connection', function (socket) {
     var hs = socket.handshake;
-    console.log(hs);
     var ipaddress = hs.address; //ipaddress.address/ipaddress.port
     ipaddress = ipaddress.address;
 
@@ -804,11 +803,7 @@ io.sockets.on('connection', function (socket) {
     var userlosses = new Array();
     var userties = new Array();
     io.sockets.emit('tradingopen', tradingopen); // Update trading status
-    socket.on('login', function (signature) {
 
-        //hs.headers.cookie= "key=" + signature + ";";
-        socket.emit("login", "ok");
-    });
     socket.on('page', function (data) {
         userpage[myName] = data.page;
         console.log(data);
@@ -1691,7 +1686,7 @@ app.get('/login/:username/:password', function (req, res) {
                                     // Generate a signature
                                     var signature = randomString(32, 'HowQuicklyDaftJumpingZebrasVex');
                                     // Add it into a secured cookie
-                                    res.cookie('key', signature, { maxAge: 3600000, path: '/', secure: true });
+                                    res.cookie('key', signature, { maxAge: 3600000, path: '/', secure: false });
                                     // Add the username and signature to the database
                                     var userKey = new Activeusers({
                                         key: signature,
@@ -1704,7 +1699,7 @@ app.get('/login/:username/:password', function (req, res) {
                                             console.log(err)
                                         }
                                     });
-                                    res.send(signature);
+                                    res.send("OK");
                                 } else if (isMatch == false) {
                                     // On error
                                     res.send("Invalid username or password.");
@@ -1918,14 +1913,13 @@ function checkcookie(socket, next) {
     var result = null;
     //Parse existing cookies
     console.log("start check")
-    console.log(socket.handshake);
+    console.log(socket.handshake.headers.cookie);
 
     if (socket.handshake.headers.cookie) {
         var cookie = socket.handshake.headers.cookie;
         var cookieObj = {};
         var cookieArr = cookie.split(';');
-        console.log("start check cookiearr")
-        console.log(cookieArr);
+
 
         for (index = 0; index < cookieArr.length; ++index) {
             var cookieKV = cookieArr[index];

@@ -124,16 +124,10 @@ $(".hook").on("click",".keystonelink",function(e) {
         $('.loginbtn').removeClass('btn-warning').addClass('btn-danger').html(html);
       } else if (html == "Invalid username or password."){
         $('.loginbtn').removeClass('btn-success').addClass('btn-warning').html('Try again');
-      } else  {
-        socket.emit("login", html);
-        socket.on("login", function(res){
-            console.log("login success!")
-            if(res == "ok"){
+      } else  if (html == "OK"){
+
                 $('.loginbtn').removeClass('btn-warning').addClass('btn-success').html('Logged in');
                 setTimeout(function(){location.reload()},1000);
-            }
-        });
-
       }
     });
   }

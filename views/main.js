@@ -13,13 +13,35 @@ require(['modules/prefs']);
 require(['modules/chat']);
 require(['modules/xp']);
 require(['modules/referrals']);
-
-
+require(['modules/symbolswitch']);
+function symbolSwitch(symbol) {
+    switch (symbol) {
+        case '^DJI':
+            symbol = 'DOW'
+            break;
+        case 'CLM14.NYM':
+            symbol = 'OIL'
+            break;
+        case 'GCM14.CMX':
+            symbol = 'GOLD'
+            break;
+        case '^GSPC':
+            symbol = 'SP500'
+            break;
+        case '^IXIC':
+            symbol = 'NASDAQ'
+            break;
+        case '^SLVSY':
+            symbol = 'SILVER'
+            break;
+    }
+    return symbol;
+}
   // $.each(symbols, function( index, symbol ) {
     // each something          index, current
   // });
 
-var socket = io.connect(document.location.hostname, {secure: false});
+var socket = io.connect(document.location.hostname+":8080", {secure: false});
 var user, email, dualfactor, verified, userid, option, price, expires, direction, userdeposit, ratio, percentage, xp, level;
 var $users = $('#users ul');
 var $chatOutput = $('.messages');
@@ -509,5 +531,5 @@ $("[data-translate]").jqTranslate('index');
 $('.keystones').scrollbox();
 
 $(".timeago").timeago();
-require(['modules/symbolswitch']);
+
 require(['modules/onloadui']);
