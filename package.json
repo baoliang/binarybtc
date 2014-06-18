@@ -21,7 +21,7 @@
     "irc": "~0.3.7",
     "passport-local": "~0.1.6",
     "redis": "~0.10.1",
-    "socket.io": "~0.9.16"
+    "socket.io": "~1.0"
   },
   "devDependencies": {},
   "scripts": {
