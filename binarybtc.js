@@ -22,6 +22,7 @@ var port = 8080
     , nodemailer = require("nodemailer")
     , crypto = require('crypto');
 
+
 var SALT_WORK_FACTOR = 10;
 
 // IRC Listener
