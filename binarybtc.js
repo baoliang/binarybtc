@@ -996,6 +996,9 @@ io.sockets.on('connection', function (socket) {
             User.find({ username: myName }, function (err, docs) {
                 if (err) throw (err)
                 docs = docs[0];
+//                if (!docs.btc){
+//                    docs.btc = 0;
+//                }
                 useraddress[myName] = docs.btc;
                 if (docs.logins) socket.emit('logins', docs.logins);
                 rclient.get(myName, function (err, bal) {

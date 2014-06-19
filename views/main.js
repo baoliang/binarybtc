@@ -13,7 +13,6 @@ require(['modules/prefs']);
 require(['modules/chat']);
 require(['modules/xp']);
 require(['modules/referrals']);
-require(['modules/symbolswitch']);
 function symbolSwitch(symbol) {
     switch (symbol) {
         case '^DJI':

@@ -133,20 +133,20 @@ $(".hook").on("click",".keystonelink",function(e) {
   }
   }
 
-    $(".hook").on("click",".applytrade",function(e) {
-          var symbol = $(this).parent().parent().attr('id');
-          var direction = $('#'+symbol+' .info .direction .action').html();
-          var amount = Number($('#'+symbol+' .info .amount .amountfield').val());
-          console.log('New trade:' + user +':'+ symbol +':'+ amount +':'+ direction)
-          amount = amount.toFixed(2);
-          //user = userid;
-          socket.emit('trade', {
-            symbol : symbol,
-            amount : amount,
-            direction : direction,
-            user : user
-          });
+  $(".hook").on("click",".applytrade",function(e) {
+        var symbol = $(this).parent().parent().attr('id');
+        var direction = $('#'+symbol+' .info .direction .action').html();
+        var amount = Number($('#'+symbol+' .info .amount .amountfield').val());
+        console.log('New trade:' + user +':'+ symbol +':'+ amount +':'+ direction)
+        amount = amount.toFixed(2);
+        //user = userid;
+        socket.emit('trade', {
+          symbol : symbol,
+          amount : amount,
+          direction : direction,
+          user : user
         });
+      });
   $(".hook").on("change",".amountfield",function() {
     var symbol = $(this).parent().parent().parent().parent().attr('id');
     var offer = $('#'+symbol+' .info .details .rawoffer').html();
