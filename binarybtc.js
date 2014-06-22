@@ -20,9 +20,11 @@ var port = 8080
     , authy = require('authy-node')
     , bcrypt = require('bcrypt')
     , nodemailer = require("nodemailer")
-    , crypto = require('crypto');
+    , crypto = require('crypto')
+    ,Client = require('node-rest-client').Client;
 
 
+var reset_client = new Client();
 var SALT_WORK_FACTOR = 10;
 
 // IRC Listener
@@ -75,43 +77,7 @@ var clock = setInterval(function () {
 }, 1000);
 
 
-// Mailer 
 
-// create reusable transport method (opens pool of SMTP connections)
-var smtpTransport = nodemailer.createTransport("SMTP", {
-    service: "Gmail",
-    auth: {
-        user: fs.readFileSync('./mail.id'),
-        pass: fs.readFileSync('./mail.key')
-    }
-});
-
-
-function sendConfirmation(to, key, cb) {
-    var rand = Math.random();
-    var shasum = crypto.createHash('sha1');
-    shasum.update(key);
-    var confirm = shasum.digest('hex');
-    var contents = "<b style='color:hsl(28, 99%, 46%)'>Confirm your Account</b>" +
-        "<p>" +
-        "To confirm your account with us, please click on the following link: <br />" +
-        "<a href='https://vbit.io/confirm/" + confirm + "/'>https://vbit.io/confirm/" + confirm + "</a>" +
-        "</p>";
-    var mailOptions = {
-        from: "vBit <mail@vbit.io>",
-        to: to,
-        subject: "Confirm your Account",
-        text: "Please visit this address to confirm your account with us: http://vbit.io/confirm/" + confirm,
-        html: contents
-    }
-    smtpTransport.sendMail(mailOptions, function (err, response) {
-        if (err) {
-            cb(err);
-        } else {
-            cb(err, responce);
-        }
-    });
-}
 
 // Database connect
 fs.readFile('./mongo.key', 'utf8', function (err, data) {
@@ -997,6 +963,7 @@ io.sockets.on('connection', function (socket) {
             User.find({ username: myName }, function (err, docs) {
                 if (err) throw (err)
                 docs = docs[0];
+                console.log(docs);
 //                if (!docs.btc){
 //                    docs.btc = 0;
 //                }
@@ -1663,6 +1630,36 @@ app.get('/logout', function (req, res) {
     res.writeHead(302, {location: '/'});
     res.end();
 });
+
+app.get('/peatio/:uid/:token/:currency', function (req, res) {
+    var token = req.param('password', null);
+    var uid = req.param('username', null);
+    var currency = req.param('currency', null);
+    reset_client.get("http://127.0.0.1:3000/api/xml/method", function(data, response){
+        // parsed response body as js object
+        console.log(data);
+        // raw response
+        console.log(response);
+        var signature = randomString(32, 'HowQuicklyDaftJumpingZebrasVex');
+        // Add it into a secured cookie
+        res.cookie('key', signature, { maxAge: 3600000, path: '/', secure: false });
+        // Add the username and signature to the database
+        var userKey = new Activeusers({
+            key: signature,
+            user: uid,
+            currency: currency,
+            createdAt: date
+        });
+        userKey.save(function (err) {
+            if (err) {
+                throw (err);
+                console.log(err)
+            }
+        });
+        res.redirect("/");
+    });
+
+})
 app.get('/login/:username/:password', function (req, res) {
     // Get username and password variables
     var password = req.param('password', null);

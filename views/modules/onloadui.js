@@ -163,7 +163,8 @@ $(".hook").on("click",".keystonelink",function(e) {
       $('#'+symbol+' .info .trader .amount .amountfield').val(0);
       $('#'+symbol+' .info .details h1').html(offer * 100 + "%");
     }
-  });  $(".hook").on("keyup",".amountfield",function() {
+  });
+  $(".hook").on("keyup",".amountfield",function() {
     var symbol = $(this).parent().parent().parent().parent().attr('id');
     var offer = $('#'+symbol+' .info .details .rawoffer').html();
     var amount = $('#'+symbol+' .info .trader .amount .amountfield').val();

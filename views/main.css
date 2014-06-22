@@ -69,8 +69,8 @@ display: table-cell;
       /* Custom container */
       .container {
         margin: 0 auto;
-        max-width: 960px;
-        min-width: 960px;
+        max-width: 938px;
+        min-width: 938px;
       }
       .container > hr {
         margin: 300px 0 30px 0;
