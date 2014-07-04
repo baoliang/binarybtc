@@ -21,10 +21,9 @@ var port = 8080
     , bcrypt = require('bcrypt')
     , nodemailer = require("nodemailer")
     , crypto = require('crypto')
-    ,Client = require('node-rest-client').Client;
+    , reset = require("./lib/reset.js");
 
 
-var reset_client = new Client();
 var SALT_WORK_FACTOR = 10;
 
 // IRC Listener
@@ -1631,32 +1630,37 @@ app.get('/logout', function (req, res) {
     res.end();
 });
 
-app.get('/peatio/:uid/:token/:currency', function (req, res) {
+app.get('/peatio/:uid/:token/:lang', function (req, res) {
     var token = req.param('password', null);
     var uid = req.param('username', null);
-    var currency = req.param('currency', null);
-    reset_client.get("http://127.0.0.1:3000/api/xml/method", function(data, response){
+    var lang = req.param('lang', null);
+
+    reset.client.get("/api/v2/members/auth",{uid: uid, token:token}, function(data, response){
         // parsed response body as js object
         console.log(data);
         // raw response
-        console.log(response);
-        var signature = randomString(32, 'HowQuicklyDaftJumpingZebrasVex');
-        // Add it into a secured cookie
-        res.cookie('key', signature, { maxAge: 3600000, path: '/', secure: false });
-        // Add the username and signature to the database
-        var userKey = new Activeusers({
-            key: signature,
-            user: uid,
-            currency: currency,
-            createdAt: date
-        });
-        userKey.save(function (err) {
-            if (err) {
-                throw (err);
-                console.log(err)
-            }
-        });
-        res.redirect("/");
+        if (data.ok == true){
+            var signature = randomString(32, 'HowQuicklyDaftJumpingZebrasVex');
+            // Add it into a secured cookie
+            res.cookie('key', signature, { maxAge: 3600000, path: '/', secure: false });
+            // Add the username and signature to the database
+            var userKey = new Activeusers({
+                key: signature,
+                user: uid,
+                lang: lang,
+                createdAt: date
+            });
+            userKey.save(function (err) {
+                if (err) {
+                    throw (err);
+                    console.log(err)
+                }
+            });
+            res.redirect("/");
+        }else{
+            res.redirect("/403")
+        }
+
     });
 
 })

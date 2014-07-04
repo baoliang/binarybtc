@@ -1,13 +1,9 @@
-const crypto = require("crypto");
-
-Signture = crypto.createHmac('sha256', 'yyy').
-    update('GET|/api/v2/markets|access_key=xxx&foo=bar&tonce=123456789').digest().toString('hex');
-console.log(Signture);
-var Client = require('node-rest-client').Client;
-
-client = new Client();
-client.get("http://localhost:3000/api/v2/markets?access_key=xxx&foo=bar&tonce=123456789&signature=e324059be4491ed8e528aa7b8735af1e96547fbec96db962d51feb7bf1b64dee", function(data, response){
-    // parsed response body as js object
-
+var reset = require("./lib/reset.js");
+//reset.client.get(reset.get_url('/api/v2/markets', '&foo=bar&'), function(data, response){
+//    console.log(response);
+//    console.log(data);
+//});
+reset.client.get(reset.get_url('/api/v2/members', {member_id: 1}), function(data, response){
     console.log(response);
+    console.log(data);
 });
