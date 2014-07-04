@@ -206,7 +206,7 @@ var server = http.createServer(app).listen(port, function () {
 // Start secure socket server
 var io = require('socket.io')(server);
 io.set('log level', 1); // reduce logging
-
+console.log("start io")
 // User Middleware
 var User = require('./lib/user-model.js');
 
@@ -1235,7 +1235,7 @@ app.get('/addtx/:txid', function (req, res, next) {
 
 // var lag = 0;
 // txchecker = new Array();
-// function checktx(tx){ 
+// function checktx(tx){
 //   txchecker[tx] = setInterval(function() {
 //     if (lag == 0) {
 //     var options = {
@@ -1248,7 +1248,7 @@ app.get('/addtx/:txid', function (req, res, next) {
 //         if (chunk) {
 //           chunk = decoder.write(chunk);
 //           try{
-//               var obj = JSON.parse(chunk); 
+//               var obj = JSON.parse(chunk);
 //           }catch(e){
 //              lag = lag + 2;
 //              throw ('checktx json parse error from: '+e);
@@ -1631,11 +1631,11 @@ app.get('/logout', function (req, res) {
 });
 
 app.get('/peatio/:uid/:token/:lang', function (req, res) {
-    var token = req.param('password', null);
-    var uid = req.param('username', null);
+    var token = req.param('token', null);
+    var uid = req.param('uid', null);
     var lang = req.param('lang', null);
 
-    reset.client.get("/api/v2/members/auth",{uid: uid, token:token}, function(data, response){
+    reset.client.get(reset.get_url("/api/v2/members/auth", {uid: uid, token:token}), function(data, response){
         // parsed response body as js object
         console.log(data);
         // raw response
@@ -2425,7 +2425,7 @@ Array.prototype.inArray = function (comparer) {
     return false;
 };
 
-// adds an element to the array if it does not already exist using a comparer 
+// adds an element to the array if it does not already exist using a comparer
 // function
 Array.prototype.pushIfNotExist = function (element, comparer) {
     if (!this.inArray(comparer)) {
