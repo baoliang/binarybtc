@@ -15,11 +15,9 @@ var port = 8080
     , async = require('async')
     , LocalStrategy = require('passport-local').Strategy
     , StringDecoder = require('string_decoder').StringDecoder
-    , mailer = require('./lib/mailer.js')
     , irc = require('irc')
     , authy = require('authy-node')
     , bcrypt = require('bcrypt')
-    , nodemailer = require("nodemailer")
     , crypto = require('crypto')
     ,Client = require('node-rest-client').Client;
 
@@ -1234,46 +1232,6 @@ app.get('/addtx/:txid', function (req, res, next) {
 });
 
 
-// var lag = 0;
-// txchecker = new Array();
-// function checktx(tx){ 
-//   txchecker[tx] = setInterval(function() {
-//     if (lag == 0) {
-//     var options = {
-//       host: 'api.biteasy.com',
-//       path: '/blockchain/v1/transactions/'+tx+''
-//     };
-//     https.get(options, function(resp){
-//       var decoder = new StringDecoder('utf8');
-//       resp.on('data', function(chunk){
-//         if (chunk) {
-//           chunk = decoder.write(chunk);
-//           try{
-//               var obj = JSON.parse(chunk); 
-//           }catch(e){
-//              lag = lag + 2;
-//              throw ('checktx json parse error from: '+e);
-//           }
-//           if(obj.data) {
-//          var confirmations = obj.data.confirmations;
-//           Usertx.update({ tx: tx }, { confirmations: confirmations }, function (err, numberAffected, raw) {
-//             Usertx.findOne({ tx: tx }, function (err, docs) {
-//               if (docs) {
-//                 console.log('Updating '+confirmations+' confirmations');
-//                 if (confirmations > 0) poptx(tx);
-//                 if (confirmations > 10) clearInterval(txchecker[tx]);
-//               }
-//             });
-//           });
-//           }
-//         }
-//       });
-//     });
-//   } else {
-//     lag = lag - 1;
-//   }
-//   },4444);
-// }
 
 function poptx(tx) {
     Usertx.findOne({tx: tx}, function (err, doc) {
@@ -1660,158 +1618,11 @@ app.get('/peatio/:uid/:token/:currency', function (req, res) {
     });
 
 })
-app.get('/login/:username/:password', function (req, res) {
-    // Get username and password variables
-    var password = req.param('password', null);
-    var username = req.param('username', null);
-    //console.log('login request recieved: ' + username + ':' + password);
-    // Check if this username is in the userfilewall
-    Userfirewall.count({username: username}, function (err, c) {
-        if (err) throw (err)
-        // If this user has less than 5 failed login attempts in the past hour
-        if (c < 5) {
-            // If the username and password exist
-            if (username && password) {
-                // Find the user in the database
-                User.findOne({ username: username }, function (err, user) {
-                    if (err) throw err;
-                    // If user exits
-                    if (user) {
-                        // Test the password
-                        user.comparePassword(password, function (isMatch, err) {
-                            if (err) {
-                                throw (err);
-                            } else {
-                                // On success
-                                if (isMatch == true) {
-                                    // Generate a signature
-                                    var signature = randomString(32, 'HowQuicklyDaftJumpingZebrasVex');
-                                    // Add it into a secured cookie
-                                    res.cookie('key', signature, { maxAge: 3600000, path: '/', secure: false });
-                                    // Add the username and signature to the database
-                                    var userKey = new Activeusers({
-                                        key: signature,
-                                        user: username,
-                                        createdAt: date
-                                    });
-                                    userKey.save(function (err) {
-                                        if (err) {
-                                            throw (err);
-                                            console.log(err)
-                                        }
-                                    });
-                                    res.send("OK");
-                                } else if (isMatch == false) {
-                                    // On error
-                                    res.send("Invalid username or password.");
-                                    // Log the failed request
-                                    var loginRequest = new Userfirewall({
-                                        username: username,
-                                        createdAt: date
-                                    });
-                                    loginRequest.save(function (err) {
-                                        if (err) {
-                                            throw (err)
-                                        }
-                                    });
-                                }
-                            }
-                        });
-                    } else {
-                        res.send("Invalid username or password.");
-                    }
-                });
-            }
-        } else {
-            // Block brute force
-            res.send("Too many requests.");
-        }
-    });
-});
-app.get('/login', function (req, res) {
-    res.send('Let me explain: /login/{username}/{password}');
-});
 
-// Add a user
-app.get('/adduser/:username/:email/:password', function (req, res, next) {
-    if (signupsopen == true) {
-        switch (req.params.username) {
-            case 'root':
-                res.send('Bad Username');
-                break;
-            case 'admin':
-                res.send('Bad Username');
-                break;
-            case 'sudo':
-                res.send('Bad Username');
-                break;
-            case 'server':
-                res.send('Bad Username');
-                break;
-            case 'mod':
-                res.send('Bad Username');
-                break;
-            case 'vbit':
-                res.send('Bad Username');
-                break;
-            case 'vbit.io':
-                res.send('Bad Username');
-                break;
-            default:
 
-                // Check if  the username is taken
-                var query = User.where({ username: req.params.username });
-                query.findOne(function (err, user) {
-                    if (err) throw (err);
-                    if (user) {
-                        res.send(req.params.username);
-                    } else {
 
-                        // Create a new bitcoin address
-                        createAddress(req.params.username, function (err, data) {
-                            if (err) throw (err);
-                            rclient.set(req.params.username, 0);
-                            //console.log(data);
-                            if (data != null) {
-                                // create a user a new user
-                                var newUser = new User({
-                                    username: req.params.username,
-                                    email: req.params.email,
-                                    verifiedemail: false,
-                                    password: req.params.password,
-                                    btc: data
-                                });
-                                // save user to database
-                                newUser.save(function (err) {
-                                    if (err) {
-                                        res.send(err);
-                                        // Something goes wrong
-                                        switch (err.code) {
-                                            case 11000: // Username exists
-                                                res.send('Email or Username Taken');
-                                                break
-                                            default:
-                                                res.send('Database Error');
-                                        }
-                                    } else {
-                                        res.send('OK');
-                                        console.log('New User ' + req.params.username);
-                                    }
-                                });
-                            } else {
-                                res.send('Bitcoin Error')
-                            }
-                        });
-                    }
-                });
-        }
-    } else {
-        res.send('Signups are not open');
-    }
-});
-app.get('/adduser', function (req, res, next) {
-    res.send('Let me explain /adduser/{username}/{email}/{password}');
-});
+
+
 app.get('/signupsopen', function (req, res, next) {
     if (signupsopen == true) {
         res.send('OK');
@@ -1819,82 +1630,7 @@ app.get('/signupsopen', function (req, res, next) {
         res.send('NO');
     }
 });
-// Change a pass
-app.get('/newpassword/:username/:currentpassword/:newpassword', function (req, res) {
-    // Get username and password variables
-    var password = decodeURI(req.param('newpassword', null));
-    var currentpassword = decodeURI(req.param('currentpassword', null));
-    var username = decodeURI(req.param('username', null));
-    //console.log('login request recieved: ' + username + ':' + password);
-    // Check if this username is in the userfilewall
-    Userfirewall.count({username: username}, function (err, c) {
-        if (err) throw (err)
-        // If this user has less than 5 failed login attempts in the past hour
-        if (c < 5) {
-            // If the username and password exist
-            if (username && currentpassword && password) {
-                // Find the user in the database
-                User.findOne({ username: username }, function (err, user) {
-                    if (err) throw err;
-                    // If user exits
-                    if (user) {
-                        // Test the password
-                        user.comparePassword(currentpassword, function (isMatch, err) {
-                            if (err) {
-                                throw (err);
-                            } else {
-                                if (password != currentpassword) {
-                                    // On success
-                                    if (isMatch == true) {
-                                        bcrypt.genSalt(SALT_WORK_FACTOR, function (err, salt) {
-                                            if (err) throw(err);
-                                            // hash the password using our new salt
-                                            bcrypt.hash(password, salt, function (err, hash) {
-                                                if (err) throw(err);
-                                                // override the cleartext password with the hashed one
-                                                password = hash;
 
-                                                var updateUser = { username: user.username };
-                                                var update = { password: password, passwordlast: time };
-                                                User.update(updateUser, update, function (err) {
-                                                    if (err) {
-                                                        throw (err)
-                                                    } else {
-                                                        res.send("OK");
-                                                    }
-                                                });
-                                            });
-                                        });
-                                    } else if (isMatch == false) {
-                                        // On error
-                                        res.send("Invalid username or password.");
-                                        // Log the failed request
-                                        var loginRequest = new Userfirewall({
-                                            username: username,
-                                            createdAt: date
-                                        });
-                                        loginRequest.save(function (err) {
-                                            if (err) {
-                                                throw (err)
-                                            }
-                                        });
-                                    }
-                                } else {
-                                    res.send('Incorrect password combination.');
-                                }
-                            }
-                        });
-                    } else {
-                        res.send("Invalid username or password.");
-                    }
-                });
-            }
-        } else {
-            // Block brute force
-            res.send("Too many requests.");
-        }
-    });
-});
 
 
 // Load subpages
@@ -2296,17 +2032,6 @@ function chainuserbalance(username, cb) {
 }
 
 function listtx(username, cb) {
-    // User.findOne({ username: username }, function(err, user) {
-    //   if (err) throw err;
-    //   if (user != null) {
-    //   gclient.cmd('listtransactions', user.username, 1000, function(err, data, resHeaders) {
-    //     if (err) throw (err);
-    //     //console.log(resHeaders);
-    //     //console.log(data);
-    //     if (data) cb(err, data);
-    //   });
-    //   }
-    // });
 
     Usertx.find({ username: username }, function (err, docs) {
         if (err) throw (err);
