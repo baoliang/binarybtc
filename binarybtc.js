@@ -19,10 +19,10 @@ var port = 8080
     , authy = require('authy-node')
     , bcrypt = require('bcrypt')
     , crypto = require('crypto')
-    ,Client = require('node-rest-client').Client;
+    , reset = require("./lib/reset.js")
+    , lib =  require("./lib/lib.js");
 
 
-var reset_client = new Client();
 var SALT_WORK_FACTOR = 10;
 
 // IRC Listener
@@ -112,15 +112,11 @@ var Usertx = mongoose.model('usertx', schema);
 var schema = new mongoose.Schema({ user: 'string', option: 'string', intl: 'string' });
 var Userprefs = mongoose.model('userprefs', schema);
 var schema = new mongoose.Schema({ key: 'string', email: 'string' });
-var Userverify = mongoose.model('userverify', schema);
+
 // Empty temporary database
 Pageviews.remove({}, function (err) {
     if (err) console.log(err);
 });
-// Activetrades.remove({}, function(err) {
-//   if (err) console.log(err);
-// });
-
 
 // Key value connect and money handling
 fs.readFile('./redis.key', 'utf8', function (err, data) {
@@ -131,6 +127,7 @@ fs.readFile('./redis.key', 'utf8', function (err, data) {
     }
     rclient = redis.createClient(null, null, options);
 });
+
 function pay(amount, tradeuser) {
     amount = round(amount, 6);
     rclient.get('myaccount', function (err, reply) {
@@ -205,7 +202,7 @@ var server = http.createServer(app).listen(port, function () {
 // Start secure socket server
 var io = require('socket.io')(server);
 io.set('log level', 1); // reduce logging
-
+console.log("start io")
 // User Middleware
 var User = require('./lib/user-model.js');
 
@@ -777,6 +774,7 @@ io.sockets.on('connection', function (socket) {
 
     // Check the users cookie key
     checkcookie(socket, function (myName, isloggedin) {
+        console.log("my name is" + myName);
         // isloggedin = true/false
         // Everything inside
         // Get the user's balance
@@ -1410,48 +1408,8 @@ app.get('/sendout/:usr/:add/:am/:pass', function (req, res, next) {
 });
 
 
-app.get('/verifyemail/:email', function (req, res, next) {
-    var uemail = req.param('email', null);
-    var key = randomString(32, 'HowQuicklyDaftJumpingZebrasVex');
-
-    var query = { email: uemail };
-    Userverify.findOneAndUpdate(query,
-        { email: uemail, key: key },
-        { upsert: true }
-        , function (err) {
-            if (err) res.send('NO');
-            sendConfirmation(uemail, key, function (err, resp) {
-                if (err) res.send('NO');
-                res.send('OK');
-            });
-        });
-});
-app.get('/confirm/:key', function (req, res, next) {
-    var key = req.param('key', null);
-    Userverify.findOne({key: key}, function (err, docs) {
-        if (err) {
-            res.send('NO');
-        } else {
-            if (docs) {
-                Userverify.findOne({key: key}, function (err, docs) {
-                    if (err) {
-                        res.send('NO');
-                    } else {
-                        user.findOneAndUpdate({username: docs.username}, {verifiedemail: true}, function (err, result) {
-                            if (err) res.send('NO');
-                            Userverify.remove({key: key}, function (err) {
-                                if (err) res.send('NO');
-                                res.send('OK');
-                            });
 
 
-                        });
-                    }
-                });
-            }
-        }
-    });
-});
 
 
 // Functions for master cash outputs
@@ -1575,61 +1533,45 @@ app.get('/userprefs/:user/:option/:intl', function (req, res, next) {
 
 });
 
-// Backup wallet to local USB drive
-app.get('/backupwallet', function (req, res, next) {
-    backup(function (result) {
-        res.send(result);
-    });
-});
 
-// Login
-app.get('/logout', function (req, res) {
-    res.clearCookie('key');
-    res.writeHead(302, {location: '/'});
-    res.end();
-});
 
-app.get('/peatio/:uid/:token/:currency', function (req, res) {
-    var token = req.param('password', null);
-    var uid = req.param('username', null);
-    var currency = req.param('currency', null);
-    reset_client.get("http://127.0.0.1:3000/api/xml/method", function(data, response){
+app.get('/peatio/:uid/:token/:lang', function (req, res) {
+    var token = req.param('token', null);
+    var uid = req.param('uid', null);
+    var lang = req.param('lang', null);
+
+    reset.client.get(reset.get_url("/api/v2/members/auth", {uid: uid, token:token}), function(data, response){
         // parsed response body as js object
-        console.log(data);
+        console.log(typeof(data));
         // raw response
-        console.log(response);
-        var signature = randomString(32, 'HowQuicklyDaftJumpingZebrasVex');
-        // Add it into a secured cookie
-        res.cookie('key', signature, { maxAge: 3600000, path: '/', secure: false });
-        // Add the username and signature to the database
-        var userKey = new Activeusers({
-            key: signature,
-            user: uid,
-            currency: currency,
-            createdAt: date
-        });
-        userKey.save(function (err) {
-            if (err) {
-                throw (err);
-                console.log(err)
-            }
-        });
-        res.redirect("/");
+        data  =  JSON.parse(data);
+        if (data.ok == true){
+            var signature = randomString(32, 'HowQuicklyDaftJumpingZebrasVex');
+            // Add it into a secured cookie
+            res.cookie('key', signature, { maxAge: 3600000, path: '/', secure: false });
+            // Add the username and signature to the database
+            var userKey = new Activeusers({
+                key: signature,
+                user: uid,
+                lang: lang,
+                createdAt: date
+            });
+            userKey.save(function (err) {
+                if (err) {
+                    throw (err);
+                    console.log(err)
+                }
+            });
+            res.redirect("/");
+        }else{
+            res.redirect("/403")
+        }
+
     });
 
 })
 
 
-
-
-
-app.get('/signupsopen', function (req, res, next) {
-    if (signupsopen == true) {
-        res.send('OK');
-    } else {
-        res.send('NO');
-    }
-});
 
 
 
@@ -1901,135 +1843,10 @@ function getPrice(symbol, force, callback) {
 }
 
 // bitcoin layer
-var bitcoin = require('bitcoin')
-    , fs = require('fs')
+var fs = require('fs')
     , mongoose = require('mongoose')
     , User = require('./lib/user-model.js');
 var client = null;
-var gclient = null;
-function Bitcoinconnect(next) {
-    var client = new bitcoin.Client({
-        host: "127.0.0.1",
-        port: "83332",
-        user: "test",
-        pass: "test1",
-        timeout: 5000
-    });
-    //console.log(host+':'+port);
-    next(client);
-}
-
-Bitcoinconnect(function (client) {
-    // After connection
-    gclient = client;
-    loginfo();
-    //dumptoLocal();
-    //syncLocal;
-    //syncRemote();
-// sendfrom('myaccount', '1A5BWZULifJVtfomBtFKRWzDxg9MVSWkjG', '1', function(err, txid) {
-//   console.log(txid);
-// });
-    // displayAccounts(function (err, info) {
-    //   console.log(info);
-    // })
-});
-// dump(1, 'liam');
-//console.log(balances);
-
-function loginfo() {
-    gclient.cmd('getinfo', function (err, info) {
-        if (err) throw (err);
-        console.log('Bitcoin loaded ', info);
-        return info;
-    });
-}
-
-function backup(cb) {
-    gclient.cmd('backupwallet', '/mnt/sdb1/', function (err, info) {
-        if (err) throw (err);
-        console.log('Backedup Remote Wallet');
-        cb(info);
-    });
-}
-
-function displayAccounts(cb) {
-    gclient.cmd('listreceivedbyaccount', function (err, info) {
-        if (err) throw (err);
-        //console.log(info);
-        cb(err, info);
-    });
-}
-function serverBalance(cb) {
-    gclient.cmd('getbalance', function (err, info) {
-        if (err) throw (err);
-        //console.log(info);
-        cb(err, info);
-    });
-}
-
-function dumptoLocal(cb) {
-    gclient.cmd('listreceivedbyaddress', 0, true, function (err, info) {
-        if (err) throw (err);
-        var entries = new Array();
-        var accounts = new Array();
-        info.forEach(function (entry) {
-            var amount = (+entry.amount * 1000);
-            accounts.push(entry.account);
-            if (!entries[entry.account]) entries[entry.account] = 0;
-            entries[entry.account] = (+entries[entry.account] + amount);
-        });
-        accounts.forEach(function (account) {
-            rclient.set(account, entries[account]);
-        });
-        var action = "Dumped bitcoin wallets to local.";
-        rclient.set('last', action)
-        if (cb) cb();
-    });
-}
-
-function syncLocal(cb) {
-    gclient.cmd('listreceivedbyaddress', 0, true, function (err, info) {
-        if (err) throw (err);
-        info.forEach(function (entry) {
-            var amount = (+entry.amount * 1000);
-            rclient.get(user.username, function (err, register) {
-                if (amount > register) {
-                    var difference = amount - register;
-                    rclient.set(entry.account, amount);
-                } else if (amount < register) {
-                    var difference = register - amount;
-                    rclient.set(entry.account, amount);
-                }
-            });
-        });
-        var action = "synclocal";
-        rclient.set('last', action)
-        if (cb) cb();
-    });
-}
-
-function addressbalance(account, cb) {
-    var confirmations = 1;
-    gclient.cmd('getbalance', account, confirmations, function (err, balance, resHeaders) {
-        cb(err, balance);
-    });
-}
-
-function chainuserbalance(username, cb) {
-    User.findOne({ username: username }, function (err, user) {
-        if (err) throw err;
-        if (user != null) {
-            gclient.cmd('getbalance', user.username, function (err, balance, resHeaders) {
-                //console.log(err) // Crunk, undefined, null
-                //console.log(resHeaders) // Crunk, undefined, null
-                balance = balance.toFixed(8);
-                //console.log(user.username + ':' + balance); // Crunk, undefined, null
-                cb(err, balance);
-            });
-        }
-    });
-
-}
 
 function listtx(username, cb) {
 
@@ -2039,66 +1856,9 @@ function listtx(username, cb) {
     })
 }
 
-function createAddress(label, cb) {
-    gclient.cmd('getnewaddress', label, function (err, add, resHeaders) {
-        if (err) throw (err);
-        cb(err, add);
-    });
-}
-
-function listreceivedbyaddress(cb) {
-    gclient.cmd('listreceivedbyaddress', function (err, result, resHeaders) {
-        if (err) throw (err);
-        //console.log(result);
-        cb(err, result);
-    });
-}
 
 
-function dumptobank(cb) {
-    gclient.cmd('listreceivedbyaddress', function (err, result, resHeaders) {
-        if (err) throw (err);
-        //console.log('User Balances:');
-        for (var i = 0; i < result.length; i++) {
-            var acc = result[i];
-            if (acc.account != 'myaccount' && acc.confirmations > 3 & acc.amount > 0) {
-                console.log(acc.account + ':' + acc.amount);
-                gclient.cmd('sendfrom', acc.account, '1A5BWZULifJVtfomBtFKRWzDxg9MVSWkjG', acc.amount, function (err, result, resHeaders) {
-                    if (err) cb(err);
-                    console.log(result);
-                });
-            }
-        }
-    });
-}
 
-
-function sendfrom(from, to, amount, cb) {
-    gclient.cmd('sendfrom', from, to, amount, function (err, txid, resHeaders) {
-        cb(err, txid);
-    });
-}
-function sendtoaddress(to, amount, cb) {
-    gclient.cmd('sendtoaddress', to, amount, function (err, txid, resHeaders) {
-        cb(err, txid);
-    });
-}
-
-function move(from, to, amount, cb) {
-    amount = (+amount / 1000);
-    gclient.cmd('move', from, to, amount, function (err, result, resHeaders) {
-        cb(err, result);
-    });
-}
-
-// function bank(from, amount, cb) {
-//   amount = (+amount / 1000);
-//   var to = "198px1RAx3NE4u8mXAaqWqmHN2DyRxeMeF";
-//   gclient.cmd('sendfrom', from, to, amount, function(err, result, resHeaders) {
-//     if (err) throw (err);
-//     cb(result);
-//   });
-// }
 
 
 function syncRemote(cb) {
@@ -2108,6 +1868,7 @@ function syncRemote(cb) {
         data.forEach(function (user) {
             rclient.get(user.username, function (err, register) {
                 if (err) throw (err);
+
                 chainuserbalance(user.username, function (err, balance) {
                     //console.log(balance);
                     if (err) throw (err)
@@ -2127,50 +1888,3 @@ function syncRemote(cb) {
 
 }
 
-
-function isNumber(num) {
-    return (typeof num == 'string' || typeof num == 'number') && !isNaN(num - 0) && num !== '';
-};
-
-function randomString(length, chars) {
-    var result = '';
-    for (var i = length; i > 0; --i) result += chars[Math.round(Math.random() * (chars.length - 1))];
-    return result;
-}
-
-// comparer : function(currentElement)
-Array.prototype.inArray = function (comparer) {
-    for (var i = 0; i < this.length; i++) {
-        if (comparer(this[i])) return true;
-    }
-    return false;
-};
-
-// adds an element to the array if it does not already exist using a comparer 
-// function
-Array.prototype.pushIfNotExist = function (element, comparer) {
-    if (!this.inArray(comparer)) {
-        this.push(element);
-    }
-};
-// Function to add custom formats to dates in milliseconds
-Date.prototype.customFormat = function (formatString) {
-    var YYYY, YY, MMMM, MMM, MM, M, DDDD, DDD, DD, D, hhh, hh, h, mm, m, ss, s, ampm, AMPM, dMod, th;
-    var dateObject = this;
-    YY = ((YYYY = dateObject.getFullYear()) + "").slice(-2);
-    MM = (M = dateObject.getMonth() + 1) < 10 ? ('0' + M) : M;
-    MMM = (MMMM = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][M - 1]).substring(0, 3);
-    DD = (D = dateObject.getDate()) < 10 ? ('0' + D) : D;
-    DDD = (DDDD = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][dateObject.getDay()]).substring(0, 3);
-    th = (D >= 10 && D <= 20) ? 'th' : ((dMod = D % 10) == 1) ? 'st' : (dMod == 2) ? 'nd' : (dMod == 3) ? 'rd' : 'th';
-    formatString = formatString.replace("#YYYY#", YYYY).replace("#YY#", YY).replace("#MMMM#", MMMM).replace("#MMM#", MMM).replace("#MM#", MM).replace("#M#", M).replace("#DDDD#", DDDD).replace("#DDD#", DDD).replace("#DD#", DD).replace("#D#", D).replace("#th#", th);
-
-    h = (hhh = dateObject.getHours());
-    if (h == 0) h = 24;
-    if (h > 12) h -= 12;
-    hh = h < 10 ? ('0' + h) : h;
-    AMPM = (ampm = hhh < 12 ? 'am' : 'pm').toUpperCase();
-    mm = (m = dateObject.getMinutes()) < 10 ? ('0' + m) : m;
-    ss = (s = dateObject.getSeconds()) < 10 ? ('0' + s) : s;
-    return formatString.replace("#hhh#", hhh).replace("#hh#", hh).replace("#h#", h).replace("#mm#", mm).replace("#m#", m).replace("#ss#", ss).replace("#s#", s).replace("#ampm#", ampm).replace("#AMPM#", AMPM);
-}
