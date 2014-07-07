@@ -1542,11 +1542,11 @@ app.get('/peatio/:uid/:token/:lang', function (req, res) {
 
     reset.client.get(reset.get_url("/api/v2/members/auth", {uid: uid, token:token}), function(data, response){
         // parsed response body as js object
-        console.log(typeof(data));
+        console.log(data);
         // raw response
         data  =  JSON.parse(data);
         if (data.ok == true){
-            var signature = randomString(32, 'HowQuicklyDaftJumpingZebrasVex');
+            var signature = lib.randomString(32, 'HowQuicklyDaftJumpingZebrasVex');
             // Add it into a secured cookie
             res.cookie('key', signature, { maxAge: 3600000, path: '/', secure: false });
             // Add the username and signature to the database
@@ -1570,8 +1570,6 @@ app.get('/peatio/:uid/:token/:lang', function (req, res) {
     });
 
 })
-
-
 
 
 
