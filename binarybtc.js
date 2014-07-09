@@ -89,7 +89,7 @@ fs.readFile('./mongo.key', 'utf8', function (err, data) {
     });
 });
 // Setup database schemas and models
-var schema = new mongoose.Schema({ key: 'string', user: 'string', createdAt: { type: Date, expires: '1h' }});
+var schema = new mongoose.Schema({ key: 'string', user: 'string', currency: 'string', createdAt: { type: Date, expires: '1h' }});
 var Activeusers = mongoose.model('activeusers', schema);
 var schema = new mongoose.Schema({ username: 'string', createdAt: { type: Date, expires: '1h' }});
 var Userfirewall = mongoose.model('userfirewall', schema);
@@ -773,7 +773,7 @@ io.sockets.on('connection', function (socket) {
     });
 
     // Check the users cookie key
-    checkcookie(socket, function (myName, isloggedin) {
+    checkcookie(socket, function (myName, isloggedin, currency) {
         console.log("my name is" + myName);
         // isloggedin = true/false
         // Everything inside
@@ -831,81 +831,18 @@ io.sockets.on('connection', function (socket) {
 
         });
 
-        //email[myName] = docs.email;
-        console.log(myName);
-        Userauth.findOne({ username: myName }, function (err, docs) {
-            if (err) throw (err)
-            //console.log(docs);
-            if (docs && docs != null) {
-                dualFactor[myName] = true;
-                dualFactorid[myName] = docs.id;
-                User.findOne({ username: myName }, function (err, docx) {
-                    if (err) throw (err)
-                    console.log(myName + ' dual factor: ' + dualFactor[myName] + ' ' + dualFactorid[myName]);
-                    socket.emit('hello', { hello: myName, id: myNumber, email: docx.email, verified: docx.verifiedemail, dualfactor: dualFactor[myName], ratio: userratio[myName], percentage: userpercentage[myName], xp: userxp[myName], level: userlevel[myName] });
-                });
-            } else {
-                User.findOne({ username: myName }, function (err, docx) {
-                    socket.emit('hello', { hello: myName, id: myNumber, email: docx.email, verified: false, dualfactor: false, ratio: userratio[myName], percentage: userpercentage[myName], xp: userxp[myName], level: userlevel[myName] });
-                });
-            }
-        });
+
+
+        socket.emit('hello', { hello: myName, id: "", email: "", verified: false, dualfactor: false, ratio: userratio[myName], percentage: userpercentage[myName], xp: userxp[myName], level: userlevel[myName] });
+
+
         socket.emit('userbal', { name: myName, balance: userbalance[myName] }); // Update userbalance
         //Send user current data on connect
 
         Historictrades.find({ user: myName }).sort({time: -1}).find(function (err, historictrades) {
             socket.emit('historictrades', historictrades);
         });
-        User.find({ username: myName }, function (err, user) {
-            user = user[0];
-            email = user.email;
-            //console.log(user.role);
-            if (user.username == 'crunk') {
 
-                console.log('Admin ' + myName + ' connected from ' + ipaddress);
-                socket.emit('loadpage', {page: 'admin'});
-                userpage[myName] = 'admin';
-
-                var lastbal;
-                var admintimer = setInterval(function () {
-                    //displayAccounts(function(err, data){
-                    Usertx.find({ }, function (err, data) {
-                        if (err) throw (err);
-                        serverBalance(function (err, bal) {
-                            if (err) throw (err);
-                            data.push({bal: bal});
-                            socket.emit('remotebals', data);
-                        });
-
-                    });
-
-                    serverBalance(function (err, bal) {
-                        if (err) throw (err);
-                        socket.emit('serverbalance', bal);
-                    });
-
-                    User.find({ }, function (err, data) {
-                        if (err) throw (err);
-                        var accs = new Array();
-                        data.forEach(function (user) {
-                            rclient.get(user.username, function (err, register) {
-                                if (err) throw (err);
-                                accs.push({
-                                    account: user.username,
-                                    address: user.btc,
-                                    bal: register
-                                });
-                                if (accs.length === data.length) {
-                                    socket.emit('localbals', accs);
-                                }
-                            });
-                        });
-                    });
-
-                }, 1000);
-
-            }
-        });
 
         // Emit any active trades on pageload
         if (trades) {
@@ -956,20 +893,13 @@ io.sockets.on('connection', function (socket) {
                 }
             });
             // Get the user's bitcoin address and balance
-            User.find({ username: myName }, function (err, docs) {
-                if (err) throw (err)
-                docs = docs[0];
-                console.log(docs);
-//                if (!docs.btc){
-//                    docs.btc = 0;
-//                }
-                useraddress[myName] = docs.btc;
-                if (docs.logins) socket.emit('logins', docs.logins);
-                rclient.get(myName, function (err, bal) {
-                    if (err) throw (err)
-                    socket.emit('wallet', {address: useraddress[myName], balance: bal}); // Update useraddress
-                });
+            reset.client.get(reset.get_url("/api/v2/members/balance", {uid: myName, currency: currency}), function(data, response){
+                socket.emit('logins', "");
+                console.log(data);
+
+                socket.emit('wallet', {address: "", balance: data.balance}); // Update useraddress
             });
+
 
             listtx(myName, function (err, data) {
                 if (err) throw (err);
@@ -1535,12 +1465,12 @@ app.get('/userprefs/:user/:option/:intl', function (req, res, next) {
 
 
 
-app.get('/peatio/:uid/:token/:lang', function (req, res) {
+app.get('/peatio/:uid/:token/:lang/:currency', function (req, res) {
     var token = req.param('token', null);
     var uid = req.param('uid', null);
     var lang = req.param('lang', null);
-
-    reset.client.get(reset.get_url("/api/v2/members/auth", {uid: uid, token:token}), function(data, response){
+    var currency = req.param('currency', null);
+    reset.client.get(reset.get_url("/api/v2/members/auth", {uid: uid, token:token, currency: currency}), function(data, response){
         // parsed response body as js object
         console.log(data);
         // raw response
@@ -1554,6 +1484,7 @@ app.get('/peatio/:uid/:token/:lang', function (req, res) {
                 key: signature,
                 user: uid,
                 lang: lang,
+                currency:  currency,
                 createdAt: date
             });
             userKey.save(function (err) {
@@ -1606,6 +1537,7 @@ function checkcookie(socket, next) {
             //console.log(cookieObj.key);
         }
         if (cookieObj.key) {
+
             Activeusers.find({ key: cookieObj.key }, function (err, docs) {
                 if (err) {
                     throw (err)
@@ -1613,8 +1545,8 @@ function checkcookie(socket, next) {
                     docs = docs[0];
                     // User authorized
                     if (docs) {
-                        //console.log(docs.user + ":" + docs.key);
-                        next(docs.user, true);
+                        console.log(docs.user + ":" + docs.key);
+                        next(docs.user, true, docs.currency);
                         //console.log(myName+':'+myNumber+' connected');
                         // Log the connection
                         var pageload = new Pageviews({
