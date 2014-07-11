@@ -76,8 +76,8 @@ if (username) {
   var login = '<div class="btn-group accountinfo" style="padding: 0px;">';
         login = login + '<button type="button" style="height: 31px;" class="btn btn-success btnuser username">'+username+'</button>';
         if (bal) {
-          login = login + '<button type="button" style="height: 31px;" class="btn btn-blue userbal btnfinance">m<i class="fa fa-btc" style="margin: 0px 5px 0px 0px;"></i> '+bal+'</button>';
-        } else { login = login + '<button type="button" style="height: 31px;" class="btn btn-blue userbal btnfinance" value="m<i class="fa fa-btc" style="margin: 0px 5px 0px 0px;"></i> 0</button>';
+          login = login + '<button type="button" style="height: 31px;" class="btn btn-blue userbal btnfinance">'+bal+'</button>';
+        } else { login = login + '<button type="button" style="height: 31px;" class="btn btn-blue userbal btnfinance" value=" 0</button>';
         }
       login = login + '</div>';
 } else {
@@ -325,8 +325,8 @@ var symbols = ['BTCUSD', 'LTCUSD', 'EURUSD', 'GBPUSD', 'CADUSD', 'AAPL', 'GOOG',
    socket.on('userbal', function (data) {
     showloginfield(data.name, data.balance);
     if (data.name) $('.guest').remove();
-    if (data.balance < 1000) $('.userbal').html('m<i class="fa fa-btc"></i>'+data.balance+'');
-    if (data.balance > 1000) $('.userbal').html('<i class="fa fa-btc"></i>'+data.balance/1000+'');
+    if (data.balance < 1000) $('.userbal').html(data.balance+'');
+    if (data.balance > 1000) $('.userbal').html(data.balance/1000+'');
     if (data.balance == 0 && autopage < 2) { page('deposit'); autopage++; }
       if (lastbal < data.balance) {
         $('.userbal').addClass("btn-success").removeClass('btn-danger').removeClass('btn-blue');

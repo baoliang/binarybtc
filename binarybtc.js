@@ -32,7 +32,7 @@ fs.readFile('./irc.host', 'utf8', function (err, data) {
     var host = data.replace("\n", "").replace("\r", "");
     var name = 'root';
     var girclient = new irc.Client(host, name, {
-        channels: ['#deetz'],
+        channels: ['#deetz']
     });
     girclient.addListener('message#deetz', function (from, message) {
         messages.push({from: from, message: message});
@@ -214,7 +214,7 @@ var symbols = ['BTCUSD', 'LTCUSD', 'EURUSD', 'GBPUSD', 'CADUSD', 'AAPL', 'GOOG',
 var bank;
 var put = 0;
 var call = 0;
-var maxamount = 20; // the max amount a user can set for any one trade
+var maxamount = 20000000; // the max amount a user can set for any one trade
 var maxoffset = { bottom: 75, top: 25 };
 var cuttrading = 0; // seconds before trading where the user is locked out from adding a trade (zero to disable)
 var offer = 0.7;
@@ -885,17 +885,13 @@ io.sockets.on('connection', function (socket) {
             socket.emit('ratios', ratio); // Update ratios
             io.sockets.emit('listing', getUsers()); // Update user listing
             // Balance updater
-            rclient.get(myName, function (err, reply) {
-                if (reply && reply != null && reply != 'NaN') {
-                    userbalance[myName] = reply;
-                } else {
-                    userbalance[myName] = 0;
-                }
-            });
+
             // Get the user's bitcoin address and balance
             reset.client.get(reset.get_url("/api/v2/members/balance", {uid: myName, currency: currency}), function(data, response){
                 socket.emit('logins', "");
                 console.log(data);
+
+                userbalance[myName] = data.balance;
 
                 socket.emit('wallet', {address: "", balance: data.balance}); // Update useraddress
             });
@@ -905,7 +901,7 @@ io.sockets.on('connection', function (socket) {
                 if (err) throw (err);
                 socket.emit('wallettx', data);
             });
-        }, 750); // Run every second
+        }, 35750); // Run every second
 
 
 // User functions
@@ -951,7 +947,7 @@ io.sockets.on('connection', function (socket) {
             var host = data.replace("\n", "").replace("\r", "");
             var name = myName;
             var irclient = new irc.Client(host, name, {
-                channels: ['#deetz'],
+                channels: ['#deetz']
             });
             irclient.addListener('message#deetz', function (from, message) {
                 if (from != myName) socket.emit('chat', {from: from, message: message});
@@ -1005,7 +1001,13 @@ app.get('/', function (req, res) {
     });
 
 });
-
+app.get('/signupsopen', function(req, res, next){
+    if (signupsopen == true) {
+        res.send('OK');
+    } else {
+        res.send('NO');
+    }
+});
 app.get('/btcstatus', function (req, res, next) {
     loginfo();
 });
@@ -1474,7 +1476,7 @@ app.get('/peatio/:uid/:token/:lang/:currency', function (req, res) {
         // parsed response body as js object
         console.log(data);
         // raw response
-        data  =  JSON.parse(data);
+
         if (data.ok == true){
             var signature = lib.randomString(32, 'HowQuicklyDaftJumpingZebrasVex');
             // Add it into a secured cookie

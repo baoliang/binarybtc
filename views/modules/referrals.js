@@ -60,7 +60,7 @@ function updateRefs(data) {
     iodate = iodate.toISOString();
 
         html = html + '<div class="alert alert-info lastbtctxs" style="margin-top: 20px;">';
-        html = html + '<div class="areferral"><i class="fa fa-user" style="margin-right: 10px;"></i> <span data-translate="referred">'+tdata.name'</span> <span style="float:right;"><strong>m</strong><i class="fa fa-btc" style="margin: 0px 2px 0px 5px;"></i>'+tdata.amount+'</span></div>';
+        html = html + '<div class="areferral"><i class="fa fa-user" style="margin-right: 10px;"></i> <span data-translate="referred">'+tdata.name+'</span> <span style="float:right;">'+tdata.amount+'</span></div>';
         html = html + '</div>';
     }
   $(".refslist").html(html);

@@ -6,7 +6,7 @@ var tr;
 function bottlepop(tx, amount) {
   if (tx != tr) {
     bottlePop.play();
-    showSuccess('<i class="fa fa-btc"></i>'+amount+' has been added to your account.', '', showSymbols) 
+    showSuccess(amount+' has been added to your account.', '', showSymbols)
     tr = tx;
   }
 }
@@ -155,7 +155,7 @@ $(".hook").on("click",".keystonelink",function(e) {
     if (amount > 0) {
       if (amount < lastbal) {
         var possiblewin = (+amount+(amount*offer));
-        $('#'+symbol+' .info .details h1').html("m฿" + possiblewin.toFixed(2));
+        $('#'+symbol+' .info .details h1').html(possiblewin.toFixed(2));
       } else {
          $('#'+symbol+' .info .trader .amount .amountfield').val(lastbal);
       }
@@ -172,7 +172,7 @@ $(".hook").on("click",".keystonelink",function(e) {
     if (amount > 0) {
       if (amount < lastbal) {
         var possiblewin = (+amount+(amount*offer));
-        $('#'+symbol+' .info .details h1').html("m฿" + possiblewin.toFixed(2));
+        $('#'+symbol+' .info .details h1').html( possiblewin.toFixed(2));
       } else {
          $('#'+symbol+' .info .trader .amount .amountfield').val(lastbal);
       }
@@ -322,11 +322,11 @@ function showSplit(x, y, z, next) {
 
 var total = x+y+z;
 $(".announcesplit .x").css('width', (x/total)*100+'%');
-if (((x/total)*100) > 10) { $(".announcesplit .x").html('Won for m฿ '+x); }
+if (((x/total)*100) > 10) { $(".announcesplit .x").html('Won for  '+x); }
 $(".announcesplit .y").css('width', (y/total)*100+'%').css('left', (x/total)*100+'%');
-if (((y/total)*100) > 10) { $(".announcesplit .y").html('Pushed for m฿ '+y); }
+if (((y/total)*100) > 10) { $(".announcesplit .y").html('Pushed for  '+y); }
 $(".announcesplit .z").css('width', (z/total)*100+'%');
-if (((z/total)*100) > 10) {  $(".announcesplit .z").html('Lost for m฿ '+z); }
+if (((z/total)*100) > 10) {  $(".announcesplit .z").html('Lost for  '+z); }
 
     if (x>z) { $(".announcesplit .x").addClass('applyspotlight'); $(".announcesplit .z").removeClass('applyspotlight'); }
     if (x<z) { $(".announcesplit .z").addClass('applyspotlight'); $(".announcesplit .x").removeClass('applyspotlight'); }

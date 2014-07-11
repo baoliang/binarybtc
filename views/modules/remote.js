@@ -27,7 +27,7 @@ function showRemoteBals(data){
                     if (entry.confirmations > 100) remotehtml = remotehtml +'<td><i class="glyphicon glyphicon-tower green" style="margin: 0px 10px 0px 10px;"></i> '+entry.confirmations+' </span></td>';
                     if (entry.confirmations < 3 && entry.confirmations > 0) remotehtml = remotehtml +'<td><i class="fa fa-certificate orange" style="margin: 0px 10px 0px 10px;"></i> '+entry.confirmations+' </span></td>';
                     if (entry.confirmations == 0) remotehtml = remotehtml +'<td><i class="fa fa-certificate" style="color: #777;margin: 0px 10px 0px 10px;"></i> <span data-translate="justnow">New</span></td>';
-                    remotehtml = remotehtml +'<td><i class="fa fa-btc" style="margin: 0px 2px 0px 5px;"></i>'+entry.amount+'</td>';
+                    remotehtml = remotehtml +entry.amount+'</td>';
                     if (entry.status == 'review') remotehtml = remotehtml + '<td class="sendcontainer"><button class="btn btn-xs btn-success sendpayment" id="'+entry.to+'">Send</button></td>';
                     if (entry.status == 'review') remotehtml = remotehtml + '<td><button class="btn btn-xs btn-danger blockpayment" id="'+entry.to+'">Block</button></td>';
 

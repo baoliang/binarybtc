@@ -2,33 +2,16 @@ function showWallet() {
 
   var html = '';
   $(".wallet").html(html);
-    html = html + '<div class="alert alert-info" style="margin-top: 20px;min-height: 133px;">';
-    html = html + '<div class="btcqr"></div>';
-    html = html + '<div class="btcwallet" data-translate="yourbtcaddress">Your Bitcoin Address:</div>';
-    html = html + '<div class="btcaddress liveaddress" id="btcaddress"></div>';
-    html = html + '<div class="btcbal"></div>';
-    if (dualfactor == true) html = html + '<div class="btcsecure"><i class="fa fa-lock"></i><span data-translate="dualfactorenabled">Dual-Factor Protected</div>';
-    if (dualfactor == false) html = html + '<div class="btcsecure"><i class="fa fa-key"></i><a class="btn btn-xs btn-blue showsecuirtypage" href="#" data-translate="enabledualfactor">Enable Dual-Factor</a></div>';
-    html = html + '</div>';
-    html = html + '<div class="alert alert-warning nomoney" style="margin-top: 20px;text-align: center;display: none;"><strong data-translate="justaddbitcoin"><i class="fa fa-flag" style="margin: 0px 5px 0px 5px;"></i> Add some Bitcoin to your account to get started.</stong></div>';
-
+  html = html + '<div class="btcbal"></div>';
   $(".wallet").html(html);
-  $('.notif').html('<div class="alert alert-danger walleterror" style="display: none;"><strong data-translate="nobtcwalletfound">No Bitcoin wallet found.</strong></div>');
+  //$('.notif').html('<div class="alert alert-danger walleterror" style="display: none;"><strong data-translate="nobtcwalletfound">No Bitcoin wallet found.</strong></div>');
 }
 function walletUpdate(add, bal) {
   //bal = bal.toFixed(8);
   if (!add) $(".walleterror").show();
   $('.liveaddress').html(add);
-  $('.btcbal').html('<strong class="georgia">m</strong><i class="fa fa-bitcoin"></i> <strong class="livebalance">'+bal+'</strong>')
+  $('.btcbal').html('<br/><br/><strong class="georgia">Your balance is :</strong><strong class="livebalance">'+bal+'</strong>')
 
-  $(".btcqr").html('');
-  $(".btcqr").qrcode({
-    render: 'canvas',
-    size: 100,
-    radius: 100,
-    fill: '#31708f',
-    text: add
-  });
 }
 
 function showWalletSend() {
@@ -38,8 +21,8 @@ function showWalletSend() {
     html = html + '<div class="alert alert-info" style="margin-top: 20px;min-height: 146px;">';
     html = html + '<div class="sendtitle"><i class="fa fa-upload"></i></div>';
     html = html + '<div class="btcaddress liveaddress"></div>';
-    if (dualfactor == false) html = html + '<div class="btcsend"><div class="input-group"><span class="input-group-addon">m<i class="fa fa-btc"></i></span><input type="text" class="form-control amount" placeholder="0.000000"><span class="input-group-addon" style="border-raidus: 0px;"><i class="fa fa-share"></i></span><input type="text" style="width: 300px;" class="form-control address" placeholder="Bitcoin Address"><button class="btn btn-blue" id="send">Send</button></div></div>';
-    if (dualfactor == true) html = html + '<div class="btcsend" style="width: 697px;"><div class="input-group"><span class="input-group-addon">m<i class="fa fa-btc"></i></span><input type="text" class="form-control amount" placeholder="0.000000"><span class="input-group-addon" style="border-raidus: 0px;"><i class="fa fa-share"></i></span><input type="text" class="form-control address" placeholder="Bitcoin Address"><span class="input-group-addon"><i class="fa fa-key securestatus"></i></span><input type="text" id="auth" maxlength="7" placeholder="*******" /><button class="btn btn-blue" id="send">Send</button></div></div>';
+    if (dualfactor == false) html = html + '<div class="btcsend"><div class="input-group"><span class="input-group-addon"></span><input type="text" class="form-control amount" placeholder="0.000000"><span class="input-group-addon" style="border-raidus: 0px;"><i class="fa fa-share"></i></span><input type="text" style="width: 300px;" class="form-control address" placeholder="Bitcoin Address"><button class="btn btn-blue" id="send">Send</button></div></div>';
+    if (dualfactor == true) html = html + '<div class="btcsend" style="width: 697px;"><div class="input-group"></span><input type="text" class="form-control amount" placeholder="0.000000"><span class="input-group-addon" style="border-raidus: 0px;"><i class="fa fa-share"></i></span><input type="text" class="form-control address" placeholder="Bitcoin Address"><span class="input-group-addon"><i class="fa fa-key securestatus"></i></span><input type="text" id="auth" maxlength="7" placeholder="*******" /><button class="btn btn-blue" id="send">Send</button></div></div>';
     html = html + '<div class="btcbal"><i class="fa fa-bitcoin"></i> <strong class="livebalance"></strong></div>';
     //if (dualfactor == true) html = html + '<div class="btcsendsecure"><i class="fa fa-key"></i><span data-translate="dualfactorsend"><input type="text" id="auth" maxlength="7" placeholder="*******" /></div>';
     //if (dualfactor == false) html = html + '<div class="btcsecure"><i class="fa fa-key"></i><a class="btn btn-xs btn-blue showsecuirtypage" href="#" data-translate="enabledualfactor">Enable Dual-Factor</a></div>';
@@ -89,7 +72,7 @@ function showTx(data) {
           if (tdata.confirmations == 1) { var confirms = '<i class="fa fa-certificate green" style="margin: 0px 10px 0px 10px;"></i> '+tdata.confirmations+' <span data-translate="confirmations">Confirmations</span>'; bottlepop(tdata.tx,tdata.amount) } 
           //if (tdata.confirmations == 1) { var confirms = '<i class="fa fa-certificate orange" style="margin: 0px 10px 0px 10px;"></i> '+tdata.confirmations+' <span data-translate="confirmations">Confirmations (one more)</span>';  }
           if (tdata.confirmations == 0) var confirms = '<i class="fa fa-certificate" style="color: #777;margin: 0px 10px 0px 10px;"></i> <span data-translate="justnow">Awaiting Confirmation</span>';
-          html = html + '<div class="received"><i class="fa fa-download green" style="margin-right: 10px;"></i> <span data-translate="received">Received</span> <i class="fa fa-btc" style="margin: 0px 2px 0px 5px;"></i>'+tdata.amount+' <span style="float: right" class="timeago">'+entrydate+' '+entrytime+' <a href="https://www.biteasy.com/blockchain/transactions/'+tdata.tx+'" target="_blank"><i style="margin: 0px 5px 0px 5px;" class="fa fa-info-circle"></i></a></span>'+confirms+'</div>';
+          html = html + '<div class="received"><i class="fa fa-download green" style="margin-right: 10px;"></i> <span data-translate="received">Received</span> '+tdata.amount+' <span style="float: right" class="timeago">'+entrydate+' '+entrytime+' <a href="https://www.biteasy.com/blockchain/transactions/'+tdata.tx+'" target="_blank"><i style="margin: 0px 5px 0px 5px;" class="fa fa-info-circle"></i></a></span>'+confirms+'</div>';
           lastdata = tdata.tx;
           //if (tdata.category == 'sent') html = html + '<div class="sent"><i class="fa fa-upload red" style="margin-right: 10px;"></i> <span data-translate="sent">Sent</span> <i class="fa fa-btc" style="margin: 0px 2px 0px 5px;"></i>'+tdata.amount+' <span style="float: right" class="timeago">'+entrydate+' '+entrytime+' <a href="https://www.biteasy.com/blockchain/transactions/'+tdata.txid+'" target="_blank"><i style="margin: 0px 5px 0px 5px;" class="fa fa-info-circle"></i></a></span>'+confirms+'</div>';
           //if (data.category == 'send') html = html + '<div class="sent"><i class="fa fa-upload red"></i> Sent '+data.amount+'</div>';
@@ -99,17 +82,17 @@ function showTx(data) {
     } else if (d=='out') {
       if (s=='review') {
         html = html + '<div class="alert alert-info lastbtctxs" style="margin-top: 20px;">';
-        html = html + '<div class="sent"><i class="fa fa-upload red" style="margin-right: 10px;"></i> <span data-translate="sent">Sending</span> <i class="fa fa-btc" style="margin: 0px 2px 0px 5px;"></i>'+tdata.amount+' <i class="fa fa-certificate" style="color: #777;margin: 0px 10px 0px 10px;"></i> Payment Review (could take a few hours) <span style="float: right" class="timeago">'+entrydate+' '+entrytime+'</span></div>';
+        html = html + '<div class="sent"><i class="fa fa-upload red" style="margin-right: 10px;"></i> <span data-translate="sent">Sending</span> '+tdata.amount+' <i class="fa fa-certificate" style="color: #777;margin: 0px 10px 0px 10px;"></i> Payment Review (could take a few hours) <span style="float: right" class="timeago">'+entrydate+' '+entrytime+'</span></div>';
         html = html + '</div>';
         index++;
       } else if (s=='sending') {
         html = html + '<div class="alert alert-info lastbtctxs" style="margin-top: 20px;">';
-        html = html + '<div class="sent"><i class="fa fa-upload red" style="margin-right: 10px;"></i> <span data-translate="sent">Sending</span> <i class="fa fa-btc" style="margin: 0px 2px 0px 5px;"></i>'+tdata.amount+' <i class="fa fa-certificate" style="margin: 0px 10px 0px 10px;"></i> '+tdata.to+' <span style="float: right" class="timeago">'+entrydate+' '+entrytime+'<a href="https://www.biteasy.com/blockchain/transactions/'+tdata.tx+'" target="_blank"><i style="margin: 0px 5px 0px 5px;" class="fa fa-info-circle"></i></a></span></div>';
+        html = html + '<div class="sent"><i class="fa fa-upload red" style="margin-right: 10px;"></i> <span data-translate="sent">Sending</span>'+tdata.amount+' <i class="fa fa-certificate" style="margin: 0px 10px 0px 10px;"></i> '+tdata.to+' <span style="float: right" class="timeago">'+entrydate+' '+entrytime+'<a href="https://www.biteasy.com/blockchain/transactions/'+tdata.tx+'" target="_blank"><i style="margin: 0px 5px 0px 5px;" class="fa fa-info-circle"></i></a></span></div>';
         html = html + '</div>';
         index++;
       } else if (s=='sent') {
         html = html + '<div class="alert alert-info lastbtctxs" style="margin-top: 20px;">';
-        html = html + '<div class="sent"><i class="fa fa-upload red" style="margin-right: 10px;"></i> <span data-translate="sent">Sent</span> <i class="fa fa-btc" style="margin: 0px 2px 0px 5px;"></i>'+tdata.amount+' <i class="fa fa-certificate orange" style="margin: 0px 10px 0px 10px;"></i> '+tdata.to+' <span style="float: right" class="timeago">'+entrydate+' '+entrytime+' <a href="https://www.biteasy.com/blockchain/transactions/'+tdata.tx+'" target="_blank"><i style="margin: 0px 5px 0px 5px;" class="fa fa-info-circle"></i></a></span></div>';
+        html = html + '<div class="sent"><i class="fa fa-upload red" style="margin-right: 10px;"></i> <span data-translate="sent">Sent</span> '+tdata.amount+' <i class="fa fa-certificate orange" style="margin: 0px 10px 0px 10px;"></i> '+tdata.to+' <span style="float: right" class="timeago">'+entrydate+' '+entrytime+' <a href="https://www.biteasy.com/blockchain/transactions/'+tdata.tx+'" target="_blank"><i style="margin: 0px 5px 0px 5px;" class="fa fa-info-circle"></i></a></span></div>';
         html = html + '</div>';
         index++;
       } else {
@@ -120,7 +103,7 @@ function showTx(data) {
           if (tdata.confirmations < 3 && tdata.confirmations > 0) confirms = confirms + '<i class="fa fa-certificate orange" style="margin: 0px 10px 0px 10px;"></i> '+tdata.confirmations+' <span data-translate="confirmations">Confirmations</span>';
           if (tdata.confirmations == 0) confirms = confirms + '<i class="fa fa-certificate" style="color: #777;margin: 0px 10px 0px 10px;"></i> <span data-translate="justnow">Just Sent...</span>';
           if (tdata.status == 'processing') confirms = confirms + '<i class="fa fa-cog fa-spin" style="color: #777;margin: 0px 10px 0px 10px;"></i> <span data-translate="justnow">Processing...</span>';
-          html = html + '<div class="received"><i class="fa fa-upload red" style="margin-right: 10px;"></i> <span data-translate="sent">Sent</span> <i class="fa fa-btc" style="margin: 0px 2px 0px 5px;"></i>'+tdata.amount+' <span style="float: right" class="timeago">'+entrydate+' '+entrytime+' <a href="https://www.biteasy.com/blockchain/transactions/'+tdata.tx+'" target="_blank"><i style="margin: 0px 5px 0px 5px;" class="fa fa-info-circle"></i></a></span>'+confirms+'</div>';
+          html = html + '<div class="received"><i class="fa fa-upload red" style="margin-right: 10px;"></i> <span data-translate="sent">Sent</span> '+tdata.amount+' <span style="float: right" class="timeago">'+entrydate+' '+entrytime+' <a href="https://www.biteasy.com/blockchain/transactions/'+tdata.tx+'" target="_blank"><i style="margin: 0px 5px 0px 5px;" class="fa fa-info-circle"></i></a></span>'+confirms+'</div>';
           lastdata = tdata.tx;
       html = html + '</div>';
       index++;
