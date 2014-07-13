@@ -903,7 +903,7 @@ io.sockets.on('connection', function (socket) {
             });
         }, 35750); // Run every second
 
-
+        
 // User functions
 
         function emittx(tx) {
@@ -1506,7 +1506,7 @@ app.get('/peatio/:uid/:token/:lang/:currency', function (req, res) {
 
 
 
-// Load subpages
+// Load subpagesre
 app.get('/account/', function (req, res, next) {
     //res.send(req.params.id);
     res.sendfile('views/a.html');
