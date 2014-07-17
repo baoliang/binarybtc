@@ -380,21 +380,21 @@ var symbols = ['BTCUSD', 'LTCUSD', 'EURUSD', 'GBPUSD', 'CADUSD', 'AAPL', 'GOOG',
    socket.on(symbol+'_price', function (data) {
      symbol = symbolSwitch(symbol);
     if (price[symbol] > data){
-        $('.keystone'+symbol).addClass('red');
-        $('.keystone'+symbol).removeClass('green');
+        $('.keystone'+symbol.replace("/", "")).addClass('red');
+        $('.keystone'+symbol.replace("/", "")).removeClass('green');
        uitradeico(symbol,0);
       } else if (price[symbol] < data){
-        $('.keystone'+symbol).addClass('green');
-        $('.keystone'+symbol).removeClass('red');
+        $('.keystone'+symbol.replace("/", "")).addClass('green');
+        $('.keystone'+symbol.replace("/", "")).removeClass('red');
         uitradeico(symbol,1);
       } else {
-        $('.keystone'+symbol).removeClass('red');
-        $('.keystone'+symbol).removeClass('green');
+        $('.keystone'+symbol.replace("/", "")).removeClass('red');
+        $('.keystone'+symbol.replace("/", "")).removeClass('green');
       }
       if (price[symbol] != data){
         $('.controls .price .lock').html('');
       }
-      $('.keystone'+symbol).html(data);
+      $('.keystone'+symbol.replace("/", "")).html(data);
       //lastprice = data;
       price[symbol] = data;
     });

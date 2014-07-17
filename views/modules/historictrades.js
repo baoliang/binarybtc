@@ -46,13 +46,13 @@ function showhistoric(data, user, trim){
         if (tid <= trim) {
         if (entry.outcome == 'Win') {
           twins++;
-          var thumbhtml = '<span class="green" data-translate="won">Won</span></td><td> m<i class="fa fa-btc"></i>'+possiblewin+'</span></td>';
+          var thumbhtml = '<span class="green" data-translate="won">Won</span></td><td> '+possiblewin+'</span></td>';
         } else if (entry.outcome == 'Lose') {
           tlosses++;
-          var thumbhtml = '<span class="red" data-translate="lost">Lost</span></td><td> m<i class="fa fa-btc"></i>'+entry.amount+'</span></td>';
+          var thumbhtml = '<span class="red" data-translate="lost">Lost</span></td><td> '+entry.amount+'</span></td>';
         } else if (entry.outcome == 'Tie') {
           tpush++;
-          var thumbhtml = '<span class="orange">Push</span></td><td> m<i class="fa fa-btc"></i>'+entry.amount+'</span></td>';
+          var thumbhtml = '<span class="orange">Push</span></td><td></i>'+entry.amount+'</span></td>';
         }
         tradehtml = tradehtml + '<tr class="historictrade" id="'+entry._id+'">' +
                     '<td class="symbol keystonelink" id="'+entry.symbol+'">'+entry.symbol+'</td>'+
@@ -120,13 +120,13 @@ function showallhistoric(data, user, trim){
         if (tid <= trim) {
         if (entry.outcome == 'Win') {
           twins++;
-          var thumbhtml = '<span class="green" data-translate="won">Won</span></td><td> m<i class="fa fa-btc"></i>'+possiblewin+'</span></td>';
+          var thumbhtml = '<span class="green" data-translate="won">Won</span></td><td> '+possiblewin+'</span></td>';
         } else if (entry.outcome == 'Lose') {
           tlosses++;
-          var thumbhtml = '<span class="red" data-translate="lost">Lost</span></td><td> m<i class="fa fa-btc"></i>'+entry.amount+'</span></td>';
+          var thumbhtml = '<span class="red" data-translate="lost">Lost</span></td><td> '+entry.amount+'</span></td>';
         } else if (entry.outcome == 'Tie') {
           tpush++;
-          var thumbhtml = '<span class="orange">Push</span></td><td> m<i class="fa fa-btc"></i>'+entry.amount+'</span></td>';
+          var thumbhtml = '<span class="orange">Push</span></td><td> '+entry.amount+'</span></td>';
         }
         tradehtml = tradehtml + '<tr class="historictrade" id="'+entry._id+'">' +
                     '<td class="symbol">'+entry.symbol+'</td>'+

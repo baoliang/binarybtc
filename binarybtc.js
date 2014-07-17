@@ -27,43 +27,19 @@ var SALT_WORK_FACTOR = 10;
 
 // IRC Listener
 var messages = new Array();
-fs.readFile('./irc.host', 'utf8', function (err, data) {
-    if (err) throw (err)
-    var host = data.replace("\n", "").replace("\r", "");
+
+
+(function(){
     var name = 'root';
-    var girclient = new irc.Client(host, name, {
+    var girclient = new irc.Client("localhost", name, {
         channels: ['#deetz']
     });
     girclient.addListener('message#deetz', function (from, message) {
         messages.push({from: from, message: message});
         console.log(from + ':' + message);
     });
-    // Allow console to talk
-    var stdin = process.stdin;
-    stdin.setRawMode(true);
-    stdin.resume();
-    stdin.setEncoding('utf8');
-    var cons = '';
-    stdin.on('data', function (key) {
-        // ctrl-c ( end of text )
-        if (key === '\u0003') {
-            process.exit();
-        }
-        cons = cons + key;
-        if (key === '\u000D') {
-            if (cons.charAt(0) == '/') {
-                console.log(cons);
-            } else {
-                girclient.say('#deetz', cons);
-                console.log('root:' + cons);
-                cons = '';
-            }
-        }
 
-    });
-});
-
-
+})();
 // Global clock
 var date = 0;
 var time = 0;
@@ -703,7 +679,7 @@ function checktx(doc) {
 
 
 var tradeupdater = setInterval(function () {
-    var symbols = ['BTCUSD', 'LTCUSD', 'EURUSD', 'GBPUSD', 'CADUSD'];
+    var symbols = ['BTCUSD', 'LTC/USD', 'EURUSD', 'GBPUSD', 'CADUSD'];
 
     async.each(symbols, function (symbol, callback) {
         getPrice(symbol, 1);
@@ -901,9 +877,9 @@ io.sockets.on('connection', function (socket) {
                 if (err) throw (err);
                 socket.emit('wallettx', data);
             });
-        }, 35750); // Run every second
+        }, 1050); // Run every second
 
-        
+
 // User functions
 
         function emittx(tx) {
@@ -940,11 +916,8 @@ io.sockets.on('connection', function (socket) {
         io.sockets.emit('totalput', put);
         //io.sockets.emit('option', symbol);
         io.sockets.emit('offer', offer);
-
-        // Protochat
-        fs.readFile('./irc.host', 'utf8', function (err, data) {
-            if (err) throw (err)
-            var host = data.replace("\n", "").replace("\r", "");
+        (function(){
+            var host = "localhost";
             var name = myName;
             var irclient = new irc.Client(host, name, {
                 channels: ['#deetz']
@@ -958,6 +931,7 @@ io.sockets.on('connection', function (socket) {
                 } else {
                     irclient.say('#deetz', message);
                 }
+//                socket.emit('chat', {from: myName, message: message});
             });
             socket.on('message', function (data) {
                 irclient.say(data.user, data.message);
@@ -965,7 +939,9 @@ io.sockets.on('connection', function (socket) {
             socket.on('disconnect', function () {
                 irclient.disconnect('disconnected');
             });
-        });
+        })();
+        // Protochat
+
 
 
         // User disconnects
@@ -1506,7 +1482,7 @@ app.get('/peatio/:uid/:token/:lang/:currency', function (req, res) {
 
 
 
-// Load subpagesre
+// Load subpages
 app.get('/account/', function (req, res, next) {
     //res.send(req.params.id);
     res.sendfile('views/a.html');
