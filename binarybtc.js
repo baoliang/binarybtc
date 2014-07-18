@@ -28,18 +28,6 @@ var SALT_WORK_FACTOR = 10;
 // IRC Listener
 var messages = new Array();
 
-
-(function(){
-    var name = 'root';
-    var girclient = new irc.Client("localhost", name, {
-        channels: ['#deetz']
-    });
-    girclient.addListener('message#deetz', function (from, message) {
-        messages.push({from: from, message: message});
-        console.log(from + ':' + message);
-    });
-
-})();
 // Global clock
 var date = 0;
 var time = 0;
@@ -922,23 +910,14 @@ io.sockets.on('connection', function (socket) {
             var irclient = new irc.Client(host, name, {
                 channels: ['#deetz']
             });
-            irclient.addListener('message#deetz', function (from, message) {
-                if (from != myName) socket.emit('chat', {from: from, message: message});
-            });
+
             socket.on('chat', function (message) {
-                if (myName == 'crunk') {
-                    irclient.say('#deetz', message);
-                } else {
-                    irclient.say('#deetz', message);
-                }
-//                socket.emit('chat', {from: myName, message: message});
+                socket.broadcast.emit('chat', {from: myName, message: message});
             });
             socket.on('message', function (data) {
-                irclient.say(data.user, data.message);
+                socket.broadcast.emit('chat', {from: myName, message: message});
             });
-            socket.on('disconnect', function () {
-                irclient.disconnect('disconnected');
-            });
+
         })();
         // Protochat
 
@@ -1763,10 +1742,6 @@ function listtx(username, cb) {
         cb(err, docs);
     })
 }
-
-
-
-
 
 
 function syncRemote(cb) {
