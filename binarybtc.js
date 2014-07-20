@@ -3,30 +3,20 @@ var port = 8080
     , url = require('url')
     , path = require('path')
     , http = require('http')
-    , nowjs = require('now')
     , https = require('https')
     , express = require('express')
     , mongoose = require('mongoose')
     , redis = require('redis')
     , passport = require('passport')
-    , Keygrip = require('keygrip')
-    , bitcoin = require('bitcoin')
-    , bson = require('bson')
     , async = require('async')
-    , LocalStrategy = require('passport-local').Strategy
     , StringDecoder = require('string_decoder').StringDecoder
     , irc = require('irc')
     , authy = require('authy-node')
-    , bcrypt = require('bcrypt')
-    , crypto = require('crypto')
     , reset = require("./lib/reset.js")
     , lib =  require("./lib/lib.js");
 
 
 var SALT_WORK_FACTOR = 10;
-
-// IRC Listener
-var messages = new Array();
 
 // Global clock
 var date = 0;
@@ -55,27 +45,19 @@ fs.readFile('./mongo.key', 'utf8', function (err, data) {
 // Setup database schemas and models
 var schema = new mongoose.Schema({ key: 'string', user: 'string', currency: 'string', createdAt: { type: Date, expires: '1h' }});
 var Activeusers = mongoose.model('activeusers', schema);
-var schema = new mongoose.Schema({ username: 'string', createdAt: { type: Date, expires: '1h' }});
-var Userfirewall = mongoose.model('userfirewall', schema);
 var schema = new mongoose.Schema({ ip: 'string', time: 'string', handle: 'string' });
 var Pageviews = mongoose.model('pageviews', schema);
-var schema = new mongoose.Schema({ symbol: 'string', price: 'string', offer: 'string', amount: 'string', direction: 'string', time: 'string', user: 'string' });
+var schema = new mongoose.Schema({ symbol: 'string', price: 'string', currency: 'string', offer: 'string', amount: 'string', direction: 'string', time: 'string', user: 'string' });
 var Activetrades = mongoose.model('activetrades', schema);
-var schema = new mongoose.Schema({ symbol: 'string', price: 'string', offer: 'string', amount: 'string', direction: 'string', time: 'string', user: 'string', outcome: 'string' });
+var schema = new mongoose.Schema({ symbol: 'string', price: 'string', offer: 'string', currency: 'string' , amount: 'string', direction: 'string', time: 'string', user: 'string', outcome: 'string' });
 var Historictrades = mongoose.model('historictrades', schema);
 var schema = new mongoose.Schema({ symbol: 'string', chart: 'string'});
 var Historicprices = mongoose.model('historicprices', schema);
-var schema = new mongoose.Schema({ from: 'string', to: 'string', amount: 'string', txid: 'string', time: 'string'});
-var Sentpayments = mongoose.model('sentpayments', schema);
-var schema = new mongoose.Schema({ option: 'string', setting: 'string'});
-var Globalvars = mongoose.model('globalvars', schema);
 var schema = new mongoose.Schema({ username: 'string', phone: 'string', id: 'string'});
 var Userauth = mongoose.model('userauth', schema);
 var schema = new mongoose.Schema({ direction: 'string', username: 'string', address: 'string', amount: 'string', status: 'string', confirmations: 'string', tx: 'string', to: 'string', time: 'string'});
 var Usertx = mongoose.model('usertx', schema);
-var schema = new mongoose.Schema({ user: 'string', option: 'string', intl: 'string' });
-var Userprefs = mongoose.model('userprefs', schema);
-var schema = new mongoose.Schema({ key: 'string', email: 'string' });
+
 
 // Empty temporary database
 Pageviews.remove({}, function (err) {
@@ -181,10 +163,11 @@ var call = 0;
 var maxamount = 20000000; // the max amount a user can set for any one trade
 var maxoffset = { bottom: 75, top: 25 };
 var cuttrading = 0; // seconds before trading where the user is locked out from adding a trade (zero to disable)
-var offer = 0.7;
+var offer = 0.99;
 var tradeevery = 5; // Defaut time in minutes before trading again
 var userNumber = 1;
 var userbalance = new Array();
+
 var trades = new Array();
 var signupsopen = true; // Allow signups?
 var tradingopen = true; // Allow trading? -proto
@@ -249,6 +232,7 @@ function trade() {
         var direction = entry[4]; //Call
         var tradetime = entry[5]; //1393712774917
         var tradeuser = entry[6]; //Guest123
+        var currency = entry[7]; //Guest123
         var outcome = null; //Win
         var winnings = 0;//7
 
@@ -292,6 +276,7 @@ function trade() {
             amount: amount,
             direction: direction,
             time: time,
+            currency: currency,
             user: tradeuser,
             outcome: outcome
         });
@@ -342,7 +327,7 @@ function trade() {
 
 
 // Add a trade for a user
-function addTrade(symbol, amount, direction, user, socket) {
+function addTrade(symbol, amount, direction, user, socket, currency) {
     var err = {};
     symbol = symbolswitch(symbol);
 
@@ -428,17 +413,14 @@ function addTrade(symbol, amount, direction, user, socket) {
                                 amount: amount,
                                 direction: direction,
                                 time: now,
+                                currency: currency,
                                 user: user
                             });
                             dbactivetrades.save(function (err) {
                                 if (err) throw (err);
                                 // Announe the trade
                                 console.log('New trade:' + user + ':' + symbol + ':' + direction + ':' + amount);
-                                // console.log('Total Call '+symbol+':'+totalcall.symbol);
-                                // console.log('Total Put '+symbol+':'+totalput.symbol);
-                                // console.log('Ratio '+symbol+' %'+ratio[symbol]);
-                                // console.log('Raw Difference: '+diff[symbol]);
-                                // Insert the trade into the ram
+
                                 var tradeinit = new Array();
                                 tradeinit[0] = symbol;
                                 tradeinit[1] = price[symbol];
@@ -447,6 +429,7 @@ function addTrade(symbol, amount, direction, user, socket) {
                                 tradeinit[4] = direction;
                                 tradeinit[5] = now;
                                 tradeinit[6] = user;
+                                tradeinit[7] = currency;
                                 trades.push(tradeinit);
                                 socket.emit('ratios', ratio);
                                 socket.emit('tradeadded', symbol);
@@ -511,17 +494,6 @@ function checknextTrade() {
         trade();
     }
 }
-
-// Proto trade shaping
-// function calculateImbalance(symbol) {
-//   Activetrades.find({symbol: symbol},function(err,trades){
-//     trades.forEach(function(elem, index, array) {
-//       elem.offer = "apple";
-//       elem.amount =
-//     elem.save();
-// });
-// }
-// }
 
 
 function getUsers() {
@@ -823,7 +795,7 @@ io.sockets.on('connection', function (socket) {
                 } else {
                     // Push data to addTrade
                     //console.log('add trade for ' + data.user);
-                    addTrade(data.symbol, data.amount, data.direction, data.user, socket);
+                    addTrade(data.symbol, data.amount, data.direction, data.user, socket, currency);
                     // Emit active trades again
                     socket.emit('activetrades', trades);
                 }
@@ -1435,7 +1407,7 @@ app.get('/peatio/:uid/:token/:lang/:currency', function (req, res) {
         if (data.ok == true){
             var signature = lib.randomString(32, 'HowQuicklyDaftJumpingZebrasVex');
             // Add it into a secured cookie
-            res.cookie('key', signature, { maxAge: 3600000, path: '/', secure: false });
+            res.cookie('key', signature, { maxAge: 360000000, path: '/', secure: false });
             // Add the username and signature to the database
             var userKey = new Activeusers({
                 key: signature,
@@ -1729,11 +1701,8 @@ function getPrice(symbol, force, callback) {
     }// jump over third-party gates
 }
 
-// bitcoin layer
-var fs = require('fs')
-    , mongoose = require('mongoose')
-    , User = require('./lib/user-model.js');
-var client = null;
+
+
 
 function listtx(username, cb) {
 
@@ -1744,30 +1713,5 @@ function listtx(username, cb) {
 }
 
 
-function syncRemote(cb) {
 
-    User.find({ }, function (err, data) {
-        if (err) throw (err);
-        data.forEach(function (user) {
-            rclient.get(user.username, function (err, register) {
-                if (err) throw (err);
-
-                chainuserbalance(user.username, function (err, balance) {
-                    //console.log(balance);
-                    if (err) throw (err)
-                    if (balance != register) {
-                        // Sync the register and balances for each user
-                        //if (balance > register) rclient.set(user.username, balance);
-                        if (register < balance) {
-                            var amount = (+balance - register);
-                            collectbank(amount, user.username);
-                        }
-
-                    }
-                });
-            });
-        });
-    });
-
-}
 
