@@ -668,6 +668,7 @@ Activetrades.find({ }, function (err, data) {
         tradeinit[4] = trade.direction;
         tradeinit[5] = trade.now;
         tradeinit[6] = trade.user;
+        tradeinit[7] =  trade.currency;
         trades.push(tradeinit);
     }
     io.sockets.emit('activetrades', trades);
