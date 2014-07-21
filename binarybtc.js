@@ -889,6 +889,7 @@ io.sockets.on('connection', function (socket) {
             });
             socket.on('message', function (data) {
                 socket.broadcast.emit('chat', {from: myName, message: message});
+
             });
 
         })();
