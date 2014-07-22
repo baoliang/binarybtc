@@ -30,7 +30,6 @@ var clock = setInterval(function () {
 
 
 
-
 // Database connect
 fs.readFile('./mongo.key', 'utf8', function (err, data) {
     if (err) throw (err)
@@ -42,6 +41,7 @@ fs.readFile('./mongo.key', 'utf8', function (err, data) {
         console.log('Database connected on port 27017');
     });
 });
+
 // Setup database schemas and models
 var schema = new mongoose.Schema({ key: 'string', user: 'string', currency: 'string', createdAt: { type: Date, expires: '1h' }});
 var Activeusers = mongoose.model('activeusers', schema);
@@ -92,6 +92,7 @@ function pay(amount, tradeuser) {
         });
     });
 }
+
 function collectbank(amount, tradeuser, cb) {
     amount = round(amount, 6);
     rclient.get(tradeuser, function (err, reply) {
@@ -187,36 +188,7 @@ var a = 0;
 var processedtrades = new Array();
 
 
-// The wild-west of functions
 
-// Check if a user exists
-function userCheck(username) {
-    var usern = null;
-    // fetch user and test password verification
-    User.findOne({ username: username }, function (err, user) {
-        if (err) throw err;
-        if (user != null) {
-            usern = user.username;
-        }
-    });
-    // return the username or null
-    return usern;
-}
-// Check if a username and password are true
-function userFetch(username, password) {
-    // Find the user in the database
-    User.findOne({ username: username }, function (err, user) {
-        if (err) throw err;
-        if (user) {
-            // Test the supplied password using middleware
-            user.comparePassword(password, function (err, isMatch) {
-                if (err) throw err;
-                // return true or false
-                return isMatch;
-            });
-        }
-    });
-}
 
 // Master trade function
 //=trade
@@ -313,15 +285,7 @@ function trade() {
         if (err) console.log(err);
     });
 
-    // A good time to update transactions
-    Usertx.find({}, function (err, docs) {
-        async.each(docs, function (doc, callback) {
-            checktx(doc);
-            //console.log('checktx', doc)
-        }, function (err) {
-            if (err) throw(err);
-        });
-    });
+
 
 }
 
@@ -597,45 +561,6 @@ function chartPoint(data, symbol) {
 
 
 var lag = 0;
-function checktx(doc) {
-    if (lag == 0) {
-
-        var tx = doc.tx;
-
-        var options = {
-            host: 'api.biteasy.com',
-            path: '/blockchain/v1/transactions/' + tx + ''
-        };
-
-        https.get(options, function (resp) {
-            var decoder = new StringDecoder('utf8');
-            resp.on('data', function (chunk) {
-                if (chunk) {
-                    chunk = decoder.write(chunk);
-                    try {
-                        var obj = JSON.parse(chunk);
-                    } catch (e) {
-                        lag = lag + 2;
-                        throw ('checktx json parse error from: ' + e);
-                    }
-                    if (obj.data) {
-                        var confirmations = obj.data.confirmations;
-                        Usertx.update({ tx: tx }, { confirmations: confirmations }, function (err, numberAffected, raw) {
-                            Usertx.findOne({ tx: tx }, function (err, docs) {
-                                if (docs) {
-                                    //console.log('Updating '+confirmations+' confirmations');
-                                    if (confirmations > 0) poptx(tx);
-                                }
-                            });
-                        });
-                    }
-                }
-            });
-        });
-    } else {
-        lag = lag - 1;
-    }
-}
 
 
 var tradeupdater = setInterval(function () {
@@ -834,43 +759,11 @@ io.sockets.on('connection', function (socket) {
             });
 
 
-            listtx(myName, function (err, data) {
-                if (err) throw (err);
-                socket.emit('wallettx', data);
-            });
+
         }, 1050); // Run every second
 
 
-// User functions
 
-        function emittx(tx) {
-            Usertx.findOne({tx: tx}, function (err, docs) {
-                if (err) throw (err)
-                var colour = 'blue'
-                if (status == 'confirmed') colour = 'green';
-                var text = 'A payment of <i class="fa fa-bitcoin">' + docs.amount + ' has been recieved.';
-                if (status == 'confirmed') var text = '<i class="fa fa-bitcoin">' + docs.amount + ' has been added to your account.';
-                socket.emit('alertuser', {message: text, trinket: 'yo!', colour: colour});
-            });
-        }
-
-        function emitsend(tx) {
-            Usertx.findOne({tx: tx}, function (err, docs) {
-                if (err) throw (err)
-                var text = 'A payment of <i class="fa fa-bitcoin">' + docs.amount + ' has been queued for sending.';
-                var colour = 'orange';
-                socket.emit('alertuser', {message: text, trinket: 'yo!', colour: colour});
-            });
-        }
-
-        function emitsent(tx) {
-            Usertx.findOne({tx: tx}, function (err, docs) {
-                if (err) throw (err)
-                var text = '<i class="fa fa-bitcoin">' + docs.amount + ' has been delivered to .';
-                var colour = 'blue';
-                socket.emit('alertuser', {message: text, trinket: 'yo!', colour: colour});
-            });
-        }
 
         // Emit trade objects
         io.sockets.emit('totalcall', call);
@@ -1008,150 +901,9 @@ app.get('/2f/auth/:user/:code', function (req, res, next) {
     });
 });
 
-app.get('/2f/details', function (req, res, next) {
-    authy.app.details(function (err, data) {
-        if (err) res.send(err);
-        res.send(data);
-    });
-});
-
-app.get('/2f/stats', function (req, res, next) {
-    authy.app.stats(function (err, data) {
-        if (err) res.send(err);
-        res.send(data);
-    });
-});
-
-app.get('/addtx/:txid', function (req, res, next) {
-    var tx = req.params.txid;
-    if (tx.length == 64) {
-        Usertx.find({ "tx": tx }, function (err, data) {
-            data = data[0];
-            if (data) {
-                res.send(data);
-            } else {
-                //console.log(data);
-                var options = {
-                    host: 'blockchain.info',
-                    port: 80,
-                    path: '/tx-index/' + tx + '/?format=json'
-                };
-                http.get(options, function (resp) {
-
-                    var decoder = new StringDecoder('utf8');
-                    resp.on('data', function (chunk) {
-                        if (chunk) {
-                            chunk = decoder.write(chunk);
-                            try {
-                                var obj = JSON.parse(chunk);
-                            } catch (e) {
-                                throw ('checktx json parse error from: ' + e);
-                            }
-                            var address = obj.out[0].addr;
-                            var amount = (+obj.out[0].value / 100000000).toFixed(8);
-                            var txtime = obj.time;
-                            var confirmations = 0;
-
-                            User.find({ btc: address }, function (err, docs) {
-                                docs = docs[0];
-                                if (docs) {
-                                    if (!docs.username) var un = 'myaccount';
-                                    if (docs.username) var un = docs.username;
-                                    console.log('Recieved ' + amount + ' from ' + un);
-                                    var newTx = new Usertx({
-                                        direction: 'in',
-                                        username: un,
-                                        address: address,
-                                        amount: amount,
-                                        status: 'new',
-                                        confirmations: confirmations,
-                                        tx: tx,
-                                        time: txtime
-                                    });
-
-                                    newTx.save(function (err) {
-                                        if (err) throw (err);
-                                        //checktx(tx);
-                                        res.send('OK');
-                                    });
-                                } else {
-                                    res.send('NO DOCS');
-                                }
-                            });
-                        } else {
-                            res.send('NO CHUNK');
-                        }
-                    });
-                });
-            }
-        });
-    } else {
-        res.send('NOT VALID');
-    }
-});
 
 
 
-function poptx(tx) {
-    Usertx.findOne({tx: tx}, function (err, doc) {
-        if (err) throw (err);
-        if (doc.status == 'new' && doc.status != 'confirmed') {
-            rclient.get(doc.username, function (err, data) {
-                if (err) throw (err);
-                var am = (+doc.amount * 1000);
-                var nam = (+data + am);
-                rclient.set(doc.username, nam, function (err, tdata) {
-                    if (err) throw (err)
-                    Usertx.update({ tx: tx }, { status: 'confirmed' }, function (err, numberAffected, raw) {
-                        if (err) return handleError(err);
-                    });
-                });
-            });
-        }
-    });
-}
-
-app.get('/checkusername/:data', function (req, res, next) {
-    var un = req.params.data;
-    var query = User.where({ username: un });
-    query.findOne(function (err, user) {
-        if (err) throw (err);
-        if (user) res.send('NO');
-        if (!user) res.send('OK');
-    });
-});
-app.get('/checkemail/:data', function (req, res, next) {
-    var em = req.params.data;
-    var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    var query = User.where({ email: em });
-    query.findOne(function (err, user) {
-        if (err) throw (err);
-        if (user || re.test(em) == false) res.send('NO');
-        if (!user && re.test(em)) res.send('OK');
-    });
-});
-app.get('/checkpass/:data', function (req, res, next) {
-    var pwd = req.params.data;
-    var matches = pwd.match(/\d+/g);
-
-    if (pwd.length > 5 && matches) {
-        res.send('OK');
-    } else {
-        res.send('NO');
-    }
-});
-app.get('/lastpasschange/:user', function (req, res, next) {
-    var un = req.params.user;
-    var query = User.where({ username: un });
-    query.findOne(function (err, user) {
-        if (err) throw (err);
-        if (user && user.passwordlast) {
-            res.send(user.passwordlast);
-        } else {
-            res.send('0');
-        }
-    });
-});
 
 // Proto
 app.get('/nexttrade', function (req, res, next) {
@@ -1171,229 +923,6 @@ app.get('/progress', function (req, res, next) {
 });
 
 
-app.get('/send/:usr/:add/:am/:auth', function (req, res, next) {
-    var usr = req.params.usr;
-    var amount = (+req.params.am / 1000);
-    var mamount = req.params.am;
-    var to = req.params.add;
-    var code = req.params.auth;
-    var from = 'myaccount';
-    Userauth.findOne({ username: usr }, function (err, user) {
-        if (err) {
-            res.send('DB Error');
-        } else {
-            authy.verify(user.id, code, function (err, data) {
-                //console.log(data);
-                if (err) {
-                    res.send('Authy Error');
-                } else if (data.token == 'is valid') {
-                    rclient.get(user.username, function (err, userbal) {
-                        if (err) {
-                            res.send('Error');
-                        } else {
-                            if (userbal < amount) {
-                                res.send('Balance');
-                            } else if (userbal >= mamount) {
-                                var newTx = new Usertx({
-                                    direction: 'out',
-                                    amount: amount,
-                                    status: 'review',
-                                    time: time,
-                                    to: to,
-                                    username: user.username
-                                });
-                                newTx.save(function (err) {
-                                    if (err) throw (err);
-                                    var newbal = (+userbal - mamount);
-                                    rclient.set(user.username, newbal, function (err, userbal) {
-                                        if (err) throw (err);
-                                        res.send('OK');
-                                    });
-                                });
-                            }
-                        }
-                    });
-                }
-            });
-        }
-    });
-});
-app.get('/sendout/:usr/:add/:am/:pass', function (req, res, next) {
-    var usr = req.params.usr;
-    var amount = (+req.params.am / 1000);
-    var mamount = req.params.am;
-    var to = req.params.add;
-    var password = req.params.pass;
-    var from = 'myaccount';
-
-    User.findOne({ username: usr }, function (err, user) {
-        if (err) {
-            res.send('DB Error');
-        } else {
-            user.comparePassword(password, function (isMatch, err) {
-                if (err) {
-                    res.send('Pass');
-                } else {
-                    if (isMatch == true) {
-                        rclient.get(user.username, function (err, userbal) {
-                            if (err) {
-                                res.send('Error');
-                            } else {
-                                if (userbal < amount) {
-                                    res.send('Balance');
-                                } else if (userbal >= mamount) {
-                                    var newTx = new Usertx({
-                                        direction: 'out',
-                                        amount: amount,
-                                        status: 'review',
-                                        time: time,
-                                        to: to,
-                                        username: user.username
-                                    });
-                                    newTx.save(function (err) {
-                                        if (err) throw (err);
-                                        var newbal = (+userbal - mamount);
-                                        rclient.set(user.username, newbal, function (err, userbal) {
-                                            if (err) throw (err);
-                                            res.send('OK');
-                                        });
-                                    });
-                                }
-                            }
-                        });
-                    }
-                }
-            });
-        }
-    });
-});
-
-
-
-
-
-
-// Functions for master cash outputs
-var masteratts = 0;
-
-app.get('/mastersend/:pwd/:to', function (req, res, next) {
-    if (masteratts < 5) {
-        var pwd = req.param('pwd', null);
-        var to = req.param('to', null);
-        fs.readFile('/home/node/keys/send.key', 'utf8', function (err, data) {
-            if (err) {
-                res.send('KEY ERROR');
-            } else {
-                var key = data.replace("\n", "").replace("\r", "").replace(" ", "");
-                //console.log('trying lock '+key+' with '+pwd);
-                if (pwd && key && to && pwd == key) {
-                    Usertx.findOneAndUpdate({to: to, status: 'review'}, {status: 'send'}, function (err, docs) {
-                        if (err) {
-                            res.send(err);
-                        } else {
-                            if (docs) {
-                                mastersend(docs.to, pwd, function (err, resp) {
-                                    if (err) {
-                                        res.send('MASTER SEND ERR');
-                                    } else {
-                                        if (resp.length == 64) {
-                                            Usertx.findOneAndUpdate({to: to, status: 'send'}, {status: 'sending', tx: resp}, function (err, docs) {
-                                                if (err) {
-                                                    res.send(err);
-                                                } else {
-                                                    res.send('OK');
-                                                }
-                                            });
-                                        }
-                                    }
-                                });
-                            } else {
-                                res.send('DOCS ERR ' + docs);
-                            }
-                        }
-                    });
-                } else {
-                    masteratts++;
-                    res.send('PASSWD');
-                }
-            }
-        });
-    } else {
-        res.send('LOCKDOWN');
-        console.log('LOCKDOWN MODE - 5 incorrect master send requests at ./mastersend/:pwd/:id -- Reboot service');
-    }
-});
-Usertx.find({status: 'send'}, function (err, docs) {
-    for (var i = 0; i < docs.length; i++) {
-        var to = docs[i].to;
-        fs.readFile('/home/node/keys/send.key', 'utf8', function (err, data) {
-            if (err) {
-                res.send('KEY ERROR ' + err);
-            } else {
-                var key = data.replace("\n", "").replace("\r", "").replace(" ", "");
-                mastersend(to, key, function (err, resp) {
-                    if (resp.length == 64) {
-                        Usertx.findOneAndUpdate({to: to}, {status: 'sending', tx: resp}, function (err, docs) {
-                            if (err) throw (err);
-
-                        });
-                    }
-                });
-            }
-        });
-    }
-});
-function mastersend(to, pwd, cb) {
-    fs.readFile('/home/node/keys/send.key', 'utf8', function (err, data) {
-        if (err) throw (err);
-        var key = data.replace("\n", "").replace("\r", "").replace(" ", "");
-        if (pwd == key) {
-            Usertx.findOne({to: to, status: 'send'}, function (err, docs) {
-                if (err) console.log('MASTERSEND USER TX DB ERR ' + err);
-                if (docs) {
-                    var amount = Number(docs.amount);
-                    var to = docs.to;
-                    console.log('attempting to send ' + amount + ' to ' + to);
-                    sendtoaddress(to, amount, function (err, resp) {
-                        if (err) {
-                            console.log('VAULT ERR: ' + err);
-                            cb(err, resp);
-                        } else {
-                            console.log('VAULT RESPONCE: ' + resp);
-                            checktx(resp);
-                            Usertx.findOneAndUpdate({to: to}, {status: 'sent', tx: resp, confirmations: 0}, function (err, docs) {
-                                if (err) throw (err);
-                                cb(err, resp);
-                            });
-                        }
-                    });
-                } else {
-                    console.log('MASTERSEND DOCS ERR ' + docs)
-                }
-            });
-        }
-    });
-}
-
-
-// User prefs
-app.get('/userprefs/:user/:option/:intl', function (req, res, next) {
-    var user = decodeURI(req.param('user', null));
-    var option = decodeURI(req.param('option', null));
-    var intl = decodeURI(req.param('intl', null));
-
-    var query = { user: user };
-    userprefs.findOneAndUpdate(query,
-        { user: user, option: option, inil: initl },
-        { upsert: true}
-        , function (err) { // save or update chart data
-            if (err) res.send(err)
-            res.send('OK');
-        });
-
-
-});
-
 
 
 app.get('/peatio/:uid/:token/:lang/:currency', function (req, res) {
@@ -1407,9 +936,10 @@ app.get('/peatio/:uid/:token/:lang/:currency', function (req, res) {
         // raw response
 
         if (data.ok == true){
+            console.log("login is true");
             var signature = lib.randomString(32, 'HowQuicklyDaftJumpingZebrasVex');
             // Add it into a secured cookie
-            res.cookie('key', signature, { maxAge: 360000000, path: '/', secure: false });
+            res.cookie('key', signature, { maxAge: 3600000000, path: '/', secure: false });
             // Add the username and signature to the database
             var userKey = new Activeusers({
                 key: signature,
@@ -1419,11 +949,13 @@ app.get('/peatio/:uid/:token/:lang/:currency', function (req, res) {
                 createdAt: date
             });
             userKey.save(function (err) {
+                console.log(err)
                 if (err) {
                     throw (err);
                     console.log(err)
                 }
             });
+            console.log("save " + userKey);
             res.redirect("/");
         }else{
             res.redirect("/403")
@@ -1457,16 +989,17 @@ function checkcookie(socket, next) {
     if (socket.handshake.headers.cookie) {
         var cookie = socket.handshake.headers.cookie;
         var cookieObj = {};
-        var cookieArr = cookie.split(';');
+        var cookieArr = cookie.replace(" ","").split(';');
 
-
+        console.log(cookieArr);
         for (index = 0; index < cookieArr.length; ++index) {
             var cookieKV = cookieArr[index];
             cookieKV = cookieKV.trim();
             var cookieKVArr = cookieKV.split('=');
             cookieObj[cookieKVArr[0]] = cookieKVArr[1];
-            //console.log(cookieObj.key);
+            console.log("key is " + cookieObj.key);
         }
+        console.log(cookieObj);
         if (cookieObj.key) {
 
             Activeusers.find({ key: cookieObj.key }, function (err, docs) {
@@ -1498,27 +1031,6 @@ function checkcookie(socket, next) {
 }
 
 
-// Proto
-
-//loginfo(); // Bitcoin info logger
-
-// socket = users[tradeuser];
-// if (outcome == 'Win') {
-// socket.emit('alertuser', {
-//  color: 'green',
-//   message: 'You won '+amount+''
-// });
-// } else if (outcome == 'Lose') {
-// socket.emit('alertuser', {
-//  color: 'red',
-//   message: 'You lost '+amount+''
-// });
-// } else if (outcome == 'Tie') {
-// socket.emit('alertuser', {
-//  color: 'green',
-//   message: 'Push for '+amount+''
-// });
-// }
 
 
 function round(num, places) {
@@ -1581,6 +1093,8 @@ function processTrade(trades) {
     }
 }
 
+
+//get 价格
 
 var chartdata = new Array();
 var lag = 0;
@@ -1704,15 +1218,6 @@ function getPrice(symbol, force, callback) {
 }
 
 
-
-
-function listtx(username, cb) {
-
-    Usertx.find({ username: username }, function (err, docs) {
-        if (err) throw (err);
-        cb(err, docs);
-    })
-}
 
 
 
