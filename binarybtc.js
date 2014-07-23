@@ -75,22 +75,7 @@ fs.readFile('./redis.key', 'utf8', function (err, data) {
 });
 
 function pay(amount, tradeuser) {
-    amount = round(amount, 6);
-    rclient.get('myaccount', function (err, reply) {
-        if (err) throw (err)
-        var updatedbank = round(+reply - amount, 6);
-        rclient.set('myaccount', updatedbank, function (err, reply) {
-            if (err) throw (err)
-            rclient.get(tradeuser, function (err, reply) {
-                if (err) throw (err)
-                var updatedbal = round(+reply + amount, 6);
-                rclient.set(tradeuser, updatedbal, function (err, reply) {
-                    if (err) throw (err)
-                    return;
-                });
-            });
-        });
-    });
+   console.log("amount=" + amount + "user = " + tradeuser)
 }
 
 function collectbank(amount, tradeuser, cb) {
@@ -817,9 +802,12 @@ io.sockets.on('connection', function (socket) {
 app.use('/', express.static(__dirname + '/views'));
 // Send index
 app.get('/', function (req, res) {
+    console.log("xx="+req.query)
     res.render('index', {
         user: true,
-        col: 2
+        col: 2,
+        currency:req.query.currency,
+        email: req.query.email
     });
 
 });
@@ -833,75 +821,6 @@ app.get('/signupsopen', function(req, res, next){
 app.get('/btcstatus', function (req, res, next) {
     loginfo();
 });
-
-app.get('/2f/add/:user/:country/:phone', function (req, res, next) {
-    var un = req.params.user;
-    var ph = req.params.phone;
-    var ca = req.params.country;
-    User.findOne({ username: un }, function (err, user) {
-        if (err) {
-            res.send(err);
-        } else {
-            authy.register(user.email, ph, ca, function (err, data) {
-                if (err) res.send(err);
-                if (data) {
-                    if (data.success) {
-                        var u = data.user;
-                        var newAuth = new Userauth({
-                            username: un,
-                            phone: ca + ph,
-                            id: u.id
-                        });
-                        // save user to database
-                        newAuth.save(function (err) {
-                            if (err) throw (err);
-                            res.send('OK');
-                        });
-                    }
-                }
-            });
-        }
-    });
-});
-
-app.get('/2f/remove/:user', function (req, res, next) {
-    var user = req.params.user;
-    authy.app.delete(user, function (err, data) {
-        if (err) res.send(err);
-        res.send(data);
-    });
-});
-
-app.get('/2f/sms/:user', function (req, res, next) {
-    var user = req.params.user;
-    authy.sms(user, function (err, data) {
-        if (err) res.send(err);
-        res.send(data);
-    });
-});
-
-app.get('/2f/auth/:user/:code', function (req, res, next) {
-    var usr = req.params.user;
-    var code = req.params.code;
-
-    Userauth.findOne({ username: usr }, function (err, user) {
-        if (err) {
-            res.send('DB Error');
-        } else {
-            console.log('checking ' + usr + ' auth token ' + user.id + ' code ' + code);
-            authy.verify(user.id, code, function (err, data) {
-                if (err) {
-                    res.send('Authy Error');
-                    //throw (err);
-                } else {
-                    res.send(data);
-                }
-            });
-        }
-    });
-});
-
-
 
 
 
@@ -946,7 +865,8 @@ app.get('/peatio/:uid/:token/:lang/:currency', function (req, res) {
                 user: uid,
                 lang: lang,
                 currency:  currency,
-                createdAt: date
+                createdAt: date,
+                email: data.email
             });
             userKey.save(function (err) {
                 console.log(err)
@@ -956,7 +876,7 @@ app.get('/peatio/:uid/:token/:lang/:currency', function (req, res) {
                 }
             });
             console.log("save " + userKey);
-            res.redirect("/");
+            res.redirect("/?currency="+currency+"&email="+data.email);
         }else{
             res.redirect("/403")
         }

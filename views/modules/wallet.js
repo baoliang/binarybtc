@@ -10,7 +10,8 @@ function walletUpdate(add, bal) {
   //bal = bal.toFixed(8);
   if (!add) $(".walleterror").show();
   $('.liveaddress').html(add);
-  $('.btcbal').html('<br/><br/><strong class="georgia">Your balance is :</strong><strong class="livebalance">'+bal+'</strong>')
+
+  $('.btcbal').html('<br/><br/><strong class="georgia">Your balance is :</strong><strong class="livebalance">'+bal+'</strong><br/><img src="/assets/img/coin/'+$("#currency").val()+'.png"/>')
 
 }
 

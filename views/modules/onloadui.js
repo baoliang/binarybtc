@@ -17,15 +17,6 @@ $(function() {
   page('trade', defaultsymbol);
 
 
-
-// $("[data-translate]").jqTranslate('trans',{defaultLang: 'es'});
-$(".hook").on("mousedown",".reveal",function(e) {
-    $(".pwd").replaceWith($('.pwd').clone().attr('type', 'text'));
-});
-$(".hook").on("mouseup",".reveal",function(e) {
-    $(".pwd").replaceWith($('.pwd').clone().attr('type', 'password'));
-});
-
 var lastitem;
 $(".globalheader").on("click",".keystones li a",function(e) {
   e.preventDefault();
@@ -59,23 +50,7 @@ $(".hook").on("click",".keystonelink",function(e) {
   }
 });
 
-//console.log('loaded ui jquery');
-  $(".right").on("keyup","#username",function(e) {
-    if(e.keyCode == 13) {
-      $('.loginbtn').html('Working');
-      login();
-    }
-  });
-  $(".right").on("keyup","#password",function(e) {
-    if(e.keyCode == 13) {
-      $('.loginbtn').html('Working');
-      login();
-    }
-  });
 
-  $(".right").on("click",".loginbtn",function(e) {
-    login();
-  });
 
   var showlogin = false;
   $(".right").on("click",".username",function(e) {
@@ -90,48 +65,15 @@ $(".hook").on("click",".keystonelink",function(e) {
   var showfin = false;
   $(".right").on("click",".userbal",function(e) {
     page('deposit');
-    //if (showfin == false) {
+
       showFinances();
-      //showfin = true;
-    //} else {
-      //showSymbols();
-      //showfin = false;
-    //}
+
     
   });  $(".right").on("click",".username",function(e) {
-    page('security');
-    //if (showfin == false) {
-      showSecurity();
-      showAccount();
-      //showfin = true;
-    //} else {
-      //showSymbols();
-      //showfin = false;
-    //}
+        page('prefs');
     
   });
 
-  function login () {
-        var email = $("#email").val();
-    var password = $("#password").val();
-    if (email && password) {
-    var url = "/login/" + email + "/" + password;
-    $.ajax({
-      url: url,
-      cache: false
-    }).done(function( html ) {
-      if (html == "Too many requests.") {
-        $('.loginbtn').removeClass('btn-warning').addClass('btn-danger').html(html);
-      } else if (html == "Invalid username or password."){
-        $('.loginbtn').removeClass('btn-success').addClass('btn-warning').html('Try again');
-      } else  if (html == "OK"){
-
-                $('.loginbtn').removeClass('btn-warning').addClass('btn-success').html('Logged in');
-                setTimeout(function(){location.reload()},1000);
-      }
-    });
-  }
-  }
 
   $(".hook").on("click",".applytrade",function(e) {
         var symbol = $(this).parent().parent().attr('id');

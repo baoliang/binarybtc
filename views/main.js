@@ -74,9 +74,9 @@ socket.on('nexttrade', function (data) {
 function showloginfield(username, bal) {
 if (username) {
   var login = '<div class="btn-group accountinfo" style="padding: 0px;">';
-        login = login + '<button type="button" style="height: 31px;" class="btn btn-success btnuser username">'+username+'</button>';
+        login = login + '<button type="button" style="height: 31px;" class="btn btn-success btnuser username">'+$("#email").val()+'</button>';
         if (bal) {
-          login = login + '<button type="button" style="height: 31px;" class="btn btn-blue userbal btnfinance">'+bal+'</button>';
+          login = login + '<img width="40" height="40" src="/assets/img/coin/'+$("#currency").val()+'.png"/><button type="button" style="height: 31px;" class="btn btn-blue userbal btnfinance">'+bal+'</button>';
         } else { login = login + '<button type="button" style="height: 31px;" class="btn btn-blue userbal btnfinance" value=" 0</button>';
         }
       login = login + '</div>';
