@@ -1037,6 +1037,7 @@ function getPrice(symbol, force, callback) {
                 chunk = decoder.write(chunk);
                 //console.log(chunk)
                 var data = chunk.split(',');
+                console.log(data);
                 var datas = data[7].split(':');
                 data = datas[1];
 
