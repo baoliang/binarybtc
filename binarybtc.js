@@ -904,7 +904,7 @@ function checkcookie(socket, next) {
     var result = null;
     //Parse existing cookies
     console.log("start check")
-    console.log(socket.handshake.headers.cookie);
+    console.log(socket.handshake);
 
     if (socket.handshake.headers.cookie) {
         var cookie = socket.handshake.headers.cookie;
