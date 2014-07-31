@@ -325,8 +325,9 @@ var symbols = ['BTCUSD', 'LTCUSD', 'EURUSD', 'GBPUSD', 'CADUSD', 'AAPL', 'GOOG',
    socket.on('userbal', function (data) {
     showloginfield(data.name, data.balance);
     if (data.name) $('.guest').remove();
-    if (data.balance < 1000) $('.userbal').html(data.balance+'');
-    if (data.balance > 1000) $('.userbal').html(data.balance/1000+'');
+
+     $('.userbal').html(data.balance+'')
+
     if (data.balance == 0 && autopage < 2) { page('deposit'); autopage++; }
       if (lastbal < data.balance) {
         $('.userbal').addClass("btn-success").removeClass('btn-danger').removeClass('btn-blue');
@@ -437,9 +438,10 @@ var symbols = ['BTCUSD', 'LTCUSD', 'EURUSD', 'GBPUSD', 'CADUSD', 'AAPL', 'GOOG',
           });
 
   socket.on('disconnect', function () {
-    var sitename = $('.btnlogo .sitename').html();
-    $('.btnlogo').removeClass('btn-warning').addClass('btn-danger');
-    $('.btnlogo .sitename').html('<span class="glyphicon glyphicon-warning-sign"></span> <span data-translate="lostconnection">Lost Connection</span>');
+      //parent.location.reload();
+   var sitename = $('.btnlogo .sitename').html();
+   $('.btnlogo').removeClass('btn-warning').addClass('btn-danger');
+   $('.btnlogo .sitename').html('<span class="glyphicon glyphicon-warning-sign"></span> <span data-translate="lostconnection">Lost Connection, please refresh this page!</span>');
   })
   socket.on('reconnect', function () {
     $('.btnlogo').removeClass('btn-warning').removeClass('btn-danger').addClass('btn-success');

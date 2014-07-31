@@ -290,7 +290,10 @@ function addTrade(symbol, amount, direction, user, socket, currency) {
             if (amount <= maxamount) {
                 // Check if the amount is over the user balance
                 if (userbalance[user] >= amount) {
-
+                    console.log(ratio);
+                    if(!ratio[symbol]){
+                        ratio[symbol] = 0;
+                    }
                     if (direction == 'Call' && ratio[symbol] > maxoffset.bottom) {
                         // The direction is invalid
                         err.sym = symbol;
@@ -365,27 +368,34 @@ function addTrade(symbol, amount, direction, user, socket, currency) {
                                 currency: currency,
                                 user: user
                             });
-                            dbactivetrades.save(function (err) {
-                                if (err) throw (err);
-                                // Announe the trade
-                                console.log('New trade:' + user + ':' + symbol + ':' + direction + ':' + amount);
+                            // Get the user's bitcoin address and balance
+                            reset.client.get(reset.get_url("/api/v2/members/lock", {uid: user, currency: currency, amount: amount}), function(data, response){
+                                if(data.ok){
+                                    dbactivetrades.save(function (err) {
+                                        if (err) throw (err);
+                                        // Announe the trade
+                                        console.log('New trade:' + user + ':' + symbol + ':' + direction + ':' + amount);
 
-                                var tradeinit = new Array();
-                                tradeinit[0] = symbol;
-                                tradeinit[1] = price[symbol];
-                                tradeinit[2] = offer;
-                                tradeinit[3] = amount;
-                                tradeinit[4] = direction;
-                                tradeinit[5] = now;
-                                tradeinit[6] = user;
-                                tradeinit[7] = currency;
-                                trades.push(tradeinit);
-                                socket.emit('ratios', ratio);
-                                socket.emit('tradeadded', symbol);
-                                socket.emit('activetrades', trades);
-                                a++;
-                                return true;
+                                        var tradeinit = new Array();
+                                        tradeinit[0] = symbol;
+                                        tradeinit[1] = price[symbol];
+                                        tradeinit[2] = offer;
+                                        tradeinit[3] = amount;
+                                        tradeinit[4] = direction;
+                                        tradeinit[5] = now;
+                                        tradeinit[6] = user;
+                                        tradeinit[7] = currency;
+                                        trades.push(tradeinit);
+                                        socket.emit('ratios', ratio);
+                                        socket.emit('tradeadded', symbol);
+                                        socket.emit('activetrades', trades);
+                                        a++;
+                                        return true;
+                                    });
+                                }
+
                             });
+
                         });
                     }
 
@@ -701,6 +711,7 @@ io.sockets.on('connection', function (socket) {
             if (data.user == myName) {
                 // Check if input data is valid
                 var re = new RegExp(/[\s\[\]\(\)=,"\/\?@\:\;]/g);
+                console.log("add trade");
                 if (re.test(data.amount)) {
                     console.log('Illegal trade input from ' + myName);
                 } else {
