@@ -1034,119 +1034,44 @@ function getPrice(symbol, force, callback) {
     var data = null;
 
     if (symbol == 'BTCUSD') {
-        var symb = symbol.match(/.{3}/g);
-        var symb = symbol.toLowerCase();
-        symb = symb[0];
-        var options = {
-            host: 'btc-e.com',
-            port: 443,
-            path: '/api/2/btc_usd/ticker'
-        };
-        https.get(options, function (resp) {
-            var decoder = new StringDecoder('utf8');
-            resp.on('data', function (chunk) {
-                chunk = decoder.write(chunk);
-                //console.log(chunk)
-                var data = chunk.split(',');
-                console.log(data);
-                var datas = data[7].split(':');
-                data = datas[1];
+        try {
+            var symb = symbol.match(/.{3}/g);
+            var symb = symbol.toLowerCase();
+            symb = symb[0];
+            var options = {
+                host: 'btc-e.com',
+                port: 443,
+                path: '/api/2/btc_usd/ticker'
+            };
+            https.get(options, function (resp) {
+                var decoder = new StringDecoder('utf8');
+                resp.on('data', function (chunk) {
+                    chunk = decoder.write(chunk);
+                    //console.log(chunk)
+                    var data = chunk.split(',');
+                    console.log(data);
+                    var datas = data[7].split(':');
+                    data = datas[1];
 
-                if (isNumber(data)) {
-                    data = Number(data);
-                    data.toFixed(2);
-                    //console.log(data);
-                    updatePrice(data, force, symbol);
-                    price[symbol] = data;
-                } else {
-                    lag = lag + 2;
-                }
-            });
-        }).on("error", function (e) {
-            console.log("Got " + options.host + " error: " + e.message);
-        }); // if symbol is a currency, we run it through for the exchange rate
-    } else if (symbol == 'LTCUSD') { // || symbol == 'NMCUSD' || symbol == 'NVCUSD' || symbol == 'NVCUSD'
-        var symb = symbol.match(/.{3}/g);
-        var symb = symbol.toLowerCase();
-        symb = symb[0];
-        var options = {
-            host: 'btc-e.com',
-            port: 443,
-            path: '/api/2/ltc_usd/ticker'
-        };
-        https.get(options, function (resp) {
-            var decoder = new StringDecoder('utf8');
-            resp.on('data', function (chunk) {
-                chunk = decoder.write(chunk);
-                // console.log(chunk)
-                var data = chunk.split(',');
-                var datas = data[7].split(':');
-                data = datas[1];
+                    if (isNumber(data)) {
+                        data = Number(data);
+                        data.toFixed(2);
+                        //console.log(data);
+                        updatePrice(data, force, symbol);
+                        price[symbol] = data;
+                    } else {
+                        lag = lag + 2;
+                    }
+                });
+            }).on("error", function (e) {
+                console.log("Got " + options.host + " error: " + e.message);
+            }); // if symbol is a currency, we run it through for the exchange rate
+        }catch(err)
+        {
+            //在这里处理错误
+        }
 
-                if (isNumber(data)) {
-                    data = Number(data);
-                    data.toFixed(2);
-                    //console.log(data);
-                    updatePrice(data, force, symbol);
-                    price[symbol] = data;
-                } else {
-                    lag = lag + 2;
-                }
-            });
-        }).on("error", function (e) {
-            console.log("Got " + options.host + " error: " + e.message);
-        }); // if symbol is a currency, we run it through for the exchange rate
-    } else if (symbol == 'EURUSD' || symbol == 'GBPUSD' || symbol == 'CADUSD') {
-        var options = {
-            host: 'download.finance.yahoo.com',
-            port: 80,
-            path: '/d/quotes.csv?s=' + symbol + '=X&f=sl1d1t1c1ohgv&e=.csv'
-        };
-        http.get(options, function (resp) {
-            var decoder = new StringDecoder('utf8');
-            resp.on('data', function (chunk) {
-                chunk = decoder.write(chunk);
-                data = chunk.split(',');
-                data = data[1];
-                //console.log(symbol+':'+data);
-                if (isNumber(data)) { // is this data even numeric?
-                    //console.log(symbol+':'+data);
-                    updatePrice(data, force, symbol);
-                    price[symbol] = data;
-                } else {
-                    lag = lag + 2;
-                }
-            });
-        }).on("error", function (e) {
-            console.log("Got " + options.host + " error: " + e.message);
-            err++;
-        });
-        // if symbol is a stock, run it through for the price
-    } else {
-        var options = {
-            host: 'download.finance.yahoo.com',
-            port: 80,
-            path: '/d/quotes.csv?s=' + symbol + '&f=sl1d1t1c1ohgv&e=.csv'
-        };
-        http.get(options, function (resp) {
-            var decoder = new StringDecoder('utf8');
-            resp.on('data', function (chunk) {
-                chunk = decoder.write(chunk);
-                data = chunk.split(',');
-                data = data[1];
-                //console.log(symbol, data);
-                if (isNumber(data)) { // is this data even numeric?
-                    updatePrice(data, force, symbol);
-                    price[symbol] = data;
-                } else {
-                    lag = lag + 5;
-                }
-            });
-        }).on("error", function (e) {
-            console.log("Got " + options.host + " error: " + e.message);
-            err++;
-        });
-    }// jump over third-party gates
+    }
 }
 
 
