@@ -1,4 +1,4 @@
-var port = 8080
+var port = 3000
     , fs = require('fs')
     , url = require('url')
     , path = require('path')

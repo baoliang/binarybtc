@@ -40,7 +40,7 @@ function symbolSwitch(symbol) {
     // each something          index, current
   // });
 
-var socket = io.connect(document.location.hostname+":8080", {secure: false});
+var socket = io.connect(document.location.hostname, {secure: false});
 var user, email, dualfactor, verified, userid, option, price, expires, direction, userdeposit, ratio, percentage, xp, level;
 var $users = $('#users ul');
 var $chatOutput = $('.messages');
